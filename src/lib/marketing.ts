@@ -1,10 +1,10 @@
 /**
  * WinGo 营销自动化事件中心
- * 将关键业务事件推送到 n8n (Mac 100.106.90.55:5678)，由 n8n 编排自动化营销序列
+ * 将关键业务事件推送到 n8n (200服务器 localhost:5678)，由 n8n 编排自动化营销序列
  * 设计原则：fire-and-forget，失败不影响主业务流程
  */
 
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'http://100.106.90.55:5678/webhook/wingo-events'
+const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || 'http://172.17.0.1:5678/webhook/wingo-events'
 const FEISHU_WEBHOOK_URL = process.env.FEISHU_WEBHOOK_URL || ''
 const N8N_TIMEOUT_MS = 5000
 let n8nConsecutiveFailures = 0
@@ -83,7 +83,7 @@ async function sendToN8N(payload: MarketingPayload) {
       n8nConsecutiveFailures++
       console.warn(`[Marketing] n8n webhook 返回 ${res.status}: ${await res.text()}`)
       if (n8nConsecutiveFailures >= MAX_N8N_FAILURES) {
-        await alertFeishu(`🚨 n8n 挂了！连续 ${MAX_N8N_FAILURES} 次推送失败，请检查 Mac 上的 n8n 服务。时间：${new Date().toLocaleString('zh-CN')}`)
+        await alertFeishu(`🚨 n8n 挂了！连续 ${MAX_N8N_FAILURES} 次推送失败，请检查 200 服务器上的 n8n 容器。时间：${new Date().toLocaleString('zh-CN')}`)
         n8nConsecutiveFailures = 0
       }
     } else {
@@ -98,7 +98,7 @@ async function sendToN8N(payload: MarketingPayload) {
       console.warn('[Marketing] n8n webhook 失败:', err.message)
     }
     if (n8nConsecutiveFailures >= MAX_N8N_FAILURES) {
-      await alertFeishu(`🚨 n8n 挂了！连续 ${MAX_N8N_FAILURES} 次推送失败，请检查 Mac 上的 n8n 服务。时间：${new Date().toLocaleString('zh-CN')}`)
+      await alertFeishu(`🚨 n8n 挂了！连续 ${MAX_N8N_FAILURES} 次推送失败，请检查 200 服务器上的 n8n 容器。时间：${new Date().toLocaleString('zh-CN')}`)
       n8nConsecutiveFailures = 0
     }
   }

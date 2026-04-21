@@ -14,6 +14,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.difyChatbotConfig = { token: 'app-WingoXiaoning2026Chatbot', baseUrl: 'http://100.106.90.55:8080' }`,
+          }}
+        />
+        <script src="http://100.106.90.55:8080/embed.min.js" id="x7nLk9mQpR2vW4tY8sZ" />
+      </head>
       <body className="min-h-screen bg-gray-50 text-gray-900">
         <AuthProvider>
           {children}

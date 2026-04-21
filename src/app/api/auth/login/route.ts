@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '密钥错误' }, { status: 403 })
     }
 
-    const token = await createToken({ role: 'admin', iat: Date.now() })
+    const token = await createToken({ userId: 'admin', role: 'admin', iat: Date.now() })
     return NextResponse.json({ success: true, token })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })

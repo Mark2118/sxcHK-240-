@@ -94,15 +94,7 @@ export default function AnalyzePage() {
   const [ocrLoading, setOcrLoading] = useState(false)
   const [ocrResult, setOcrResult] = useState(false)
   const [ocrText, setOcrText] = useState('')
-  const [passwordVerified, setPasswordVerified] = useState(false)
-  const [passwordInput, setPasswordInput] = useState('')
-  const [passwordError, setPasswordError] = useState('')
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && localStorage.getItem('xsc_beta_pass') === 'ok') {
-      setPasswordVerified(true)
-    }
-  }, [])
+  // 密码验证已移除 — 正式环境直接开放
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -225,50 +217,6 @@ export default function AnalyzePage() {
   const resultColor: Record<number, string> = { 0: 'text-gray-500', 1: 'text-green-600', 2: 'text-red-600', 3: 'text-amber-600' }
   const resultBg: Record<number, string> = { 0: 'bg-gray-50', 1: 'bg-green-50', 2: 'bg-red-50', 3: 'bg-amber-50' }
   const resultBorder: Record<number, string> = { 0: 'border-gray-200', 1: 'border-green-200', 2: 'border-red-200', 3: 'border-amber-200' }
-
-  const verifyPassword = () => {
-    if (passwordInput === '0123') {
-      localStorage.setItem('xsc_beta_pass', 'ok')
-      setPasswordVerified(true)
-    } else {
-      setPasswordError('密码错误')
-      setPasswordInput('')
-    }
-  }
-
-  // 内测密码验证
-  if (!passwordVerified) {
-    return (
-      <main className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-blue-900 flex items-center justify-center px-4">
-        <div className="text-center max-w-sm">
-          <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-5">
-            <Lock size={32} className="text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-white mb-2">WinGo 内测版</h1>
-          <p className="text-blue-200 mb-6">请输入内测密码进入</p>
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5">
-            <input
-              type="password"
-              value={passwordInput}
-              onChange={(e) => { setPasswordInput(e.target.value); setPasswordError('') }}
-              onKeyDown={(e) => { if (e.key === 'Enter') verifyPassword() }}
-              placeholder="请输入密码"
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-blue-300/50 text-center text-lg tracking-widest mb-3 focus:outline-none focus:border-green-400"
-              autoFocus
-            />
-            {passwordError && <p className="text-red-300 text-sm mb-3">{passwordError}</p>}
-            <button
-              onClick={() => verifyPassword()}
-              className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-colors"
-            >
-              进入
-            </button>
-          </div>
-          <p className="text-blue-300/40 text-xs mt-4">内测版本，请勿外传</p>
-        </div>
-      </main>
-    )
-  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
