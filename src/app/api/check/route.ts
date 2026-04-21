@@ -6,6 +6,8 @@ import { dbClient } from '@/lib/db'
 import { verifyToken } from '@/lib/auth'
 import { emitReportGenerated } from '@/lib/marketing'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -15,14 +17,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '请提供作业内容' }, { status: 400 })
     }
 
-    // 获取当前用户（可选，未登录也能生成报告但不关联）
-    let userId: string | undefined
+    // 强制鉴权
     const token = req.headers.get('authorization')?.replace('Bearer ', '')
-    if (token) {
-      const payload = await verifyToken(token)
-      if (payload?.userId) {
-        userId = payload.userId as string
-      }
+    if (!token) {
+      return NextResponse.json({ error: '请先登录' }, { status: 401 })
+    }
+
+    const payload = await verifyToken(token)
+    if (!payload?.userId) {
+      return NextResponse.json({ error: '登录已过期，请重新登录' }, { status: 401 })
+    }
+
+    const userId = payload.userId as string
+
+    // 检查使用限额
+    const limitCheck = dbClient.userLimits.canGenerate(userId)
+    if (!limitCheck.can) {
+      return NextResponse.json(
+        { error: '免费次数已用完，开通会员可无限使用', code: 'NO_QUOTA', needPurchase: true },
+        { status: 403 }
+      )
     }
 
     // 1. AI 学情分析
@@ -43,7 +57,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. 持久化到 SQLite，关联用户
+    // 3. 扣减免费次数（仅限免费用户）
+    if (limitCheck.type === 'free') {
+      dbClient.userLimits.decrementFree(userId)
+    }
+
+    // 4. 持久化到 SQLite
     let reportId: string | null = null
     try {
       const record = await dbClient.check.create({
@@ -60,23 +79,21 @@ export async function POST(req: NextRequest) {
       })
       reportId = record.id
 
-      // 4. 触发营销事件：报告生成
-      if (userId) {
-        const user = dbClient.users.findById(userId)
-        const limit = dbClient.userLimits.findByUserId(userId)
-        if (user) {
-          emitReportGenerated(
-            userId,
-            user.openid,
-            record.id,
-            subject,
-            report.score,
-            report.correct,
-            report.totalQuestions,
-            limit?.freeCount ?? 0,
-            limit?.memberType
-          )
-        }
+      // 5. 触发营销事件
+      const user = dbClient.users.findById(userId)
+      const limit = dbClient.userLimits.findByUserId(userId)
+      if (user) {
+        emitReportGenerated(
+          userId,
+          user.openid,
+          record.id,
+          subject,
+          report.score,
+          report.correct,
+          report.totalQuestions,
+          limit?.freeCount ?? 0,
+          limit?.memberType
+        )
       }
     } catch (dbErr) {
       console.error('数据库保存失败:', dbErr)
@@ -88,6 +105,7 @@ export async function POST(req: NextRequest) {
       html,
       exercises,
       reportId,
+      freeCount: Math.max(0, (limitCheck.freeCount ?? 0) - (limitCheck.type === 'free' ? 1 : 0)),
     })
   } catch (error: any) {
     console.error('学情分析错误:', error)

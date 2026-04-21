@@ -5,6 +5,10 @@ import { analyzeHomework } from '@/lib/ai'
 import { renderReportHTML } from '@/lib/report'
 import { generateExercises } from '@/lib/exercises'
 import { dbClient } from '@/lib/db'
+import { verifyToken } from '@/lib/auth'
+import { emitReportGenerated } from '@/lib/marketing'
+
+export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,6 +17,28 @@ export async function POST(req: NextRequest) {
 
     if (!imageBase64) {
       return NextResponse.json({ error: '缺少图片数据' }, { status: 400 })
+    }
+
+    // 强制鉴权
+    const token = req.headers.get('authorization')?.replace('Bearer ', '')
+    if (!token) {
+      return NextResponse.json({ error: '请先登录' }, { status: 401 })
+    }
+
+    const payload = await verifyToken(token)
+    if (!payload?.userId) {
+      return NextResponse.json({ error: '登录已过期，请重新登录' }, { status: 401 })
+    }
+
+    const userId = payload.userId as string
+
+    // 检查使用限额
+    const limitCheck = dbClient.userLimits.canGenerate(userId)
+    if (!limitCheck.can) {
+      return NextResponse.json(
+        { error: '免费次数已用完，开通会员可无限使用', code: 'NO_QUOTA', needPurchase: true },
+        { status: 403 }
+      )
     }
 
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '')
@@ -33,7 +59,6 @@ export async function POST(req: NextRequest) {
     let analysisText = ''
 
     if (paperCut && paperCut.questions.length > 0) {
-      // 用切题结构化的数据
       const lines: string[] = []
       lines.push(`学科: ${correctResult.subject || subject}`)
       lines.push(`共识别 ${paperCut.questions.length} 道题`)
@@ -59,11 +84,10 @@ export async function POST(req: NextRequest) {
       }
       analysisText = lines.join('\n')
     } else {
-      // 降级：只用 correct_edu 的文本
       analysisText = correctResultToText(correctResult)
     }
 
-    // 4. AI 深度分析（基于客观批改数据生成学情报告）
+    // 4. AI 深度分析
     const fullText = `【客观批改数据】\n${analysisText}\n\n请基于以上客观数据，生成专业学情分析报告。注意：以上对错判断来自 WinGo 智能批改系统，是客观事实。你的任务是分析薄弱点、给出学习建议、推荐练习方向。`
     const report = await analyzeHomework(fullText, subject)
     const html = renderReportHTML(report)
@@ -78,10 +102,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 6. 保存到数据库
+    // 6. 扣减免费次数
+    if (limitCheck.type === 'free') {
+      dbClient.userLimits.decrementFree(userId)
+    }
+
+    // 7. 保存到数据库
     let reportId: string | null = null
     try {
       const record = await dbClient.check.create({
+        userId,
         subject,
         score: report.score,
         totalQuestions: report.totalQuestions,
@@ -93,6 +123,23 @@ export async function POST(req: NextRequest) {
         exercisesJson: exercises ? JSON.stringify(exercises) : undefined,
       })
       reportId = record.id
+
+      // 触发营销事件
+      const user = dbClient.users.findById(userId)
+      const limit = dbClient.userLimits.findByUserId(userId)
+      if (user) {
+        emitReportGenerated(
+          userId,
+          user.openid,
+          record.id,
+          subject,
+          report.score,
+          report.correct,
+          report.totalQuestions,
+          limit?.freeCount ?? 0,
+          limit?.memberType
+        )
+      }
     } catch (dbErr) {
       console.error('数据库保存失败:', dbErr)
     }
@@ -105,6 +152,7 @@ export async function POST(req: NextRequest) {
       html,
       exercises,
       reportId,
+      freeCount: Math.max(0, (limitCheck.freeCount ?? 0) - (limitCheck.type === 'free' ? 1 : 0)),
     })
   } catch (error: any) {
     console.error('智能批改错误:', error)
