@@ -263,10 +263,10 @@ export default function AnalyzePage() {
                   }
                   mockLogin()
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-xl text-sm font-medium hover:bg-green-600 transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
               >
                 <User size={16} />
-                微信一键登录
+                <span className="hidden sm:inline">登录</span>
               </button>
             )}
             <div className="hidden sm:flex items-center gap-2 text-xs text-gray-400">
@@ -371,7 +371,7 @@ export default function AnalyzePage() {
                     ) : (
                       <>
                         <Sparkles size={18} />
-                        拍照智能批改（百度客观批改）
+                        🎯 WinGo 智能批改
                       </>
                     )}
                   </button>
@@ -429,7 +429,7 @@ export default function AnalyzePage() {
                     <div className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center text-sm font-bold shrink-0">1</div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">拍照智能批改（推荐）</p>
-                      <p className="text-xs text-gray-500 mt-1">上传作业照片，百度 AI 自动切题、客观判断对错，精度最高</p>
+                      <p className="text-xs text-gray-500 mt-1">上传作业照片，WinGo 自动切题、客观判断对错，精度最高</p>
                     </div>
                   </div>
                   <div className="flex gap-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
@@ -445,13 +445,13 @@ export default function AnalyzePage() {
               <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 p-6">
                 <h3 className="font-semibold text-blue-900 mb-2">关于 WinGo 学情洞察</h3>
                 <p className="text-sm text-blue-800 leading-relaxed mb-3">
-                  WinGo 学情洞察由 WinGo 团队开发，底层 AI 引擎采用清华大学 THU-MAIC OpenMAIC 技术架构。
+                  WinGo 学情洞察由 WinGo 团队自主研发，底层采用 WinGo 学情引擎技术。
                   通过客观的数据分析，帮助家长清晰了解孩子的知识掌握情况，为家庭学习规划提供科学参考。
                 </p>
                 <div className="flex items-center gap-2 text-xs text-blue-700 bg-white/60 p-2 rounded-lg">
                   <span className="font-semibold">WinGo</span>
                   <span>×</span>
-                  <span className="font-semibold">清华 OpenMAIC</span>
+                  <span className="font-semibold">WinGo 学情引擎</span>
                 </div>
               </div>
             </div>
@@ -520,7 +520,31 @@ export default function AnalyzePage() {
                         {result.previewMessage || '登录并解锁后可查看完整学情分析'}
                       </p>
                       <div className="flex items-center gap-3 mt-2">
-                        {result.needPurchase ? (
+                        {!user ? (
+                          <button
+                            onClick={() => {
+                              const mockLogin = async () => {
+                                const mockCode = 'mock_wx_code_' + Date.now()
+                                const res = await fetch('/xsc/api/auth/wechat', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ code: mockCode }),
+                                })
+                                const data = await res.json()
+                                if (data.success && data.token) {
+                                  localStorage.setItem('xsc_token', data.token)
+                                  window.location.reload()
+                                } else {
+                                  alert('登录失败: ' + (data.error || '未知错误'))
+                                }
+                              }
+                              mockLogin()
+                            }}
+                            className="px-4 py-2 bg-green-500 text-white text-sm font-medium rounded-lg hover:bg-green-600 transition-colors"
+                          >
+                            登录后解锁完整报告
+                          </button>
+                        ) : result.needPurchase ? (
                           <button
                             onClick={() => setPayModalOpen(true)}
                             className="px-4 py-2 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 transition-colors"
@@ -743,7 +767,7 @@ export default function AnalyzePage() {
                       </div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">练习生成中或暂不可用</h3>
                       <p className="text-sm text-gray-500 mb-4 max-w-md mx-auto">
-                        练习题由 OpenMAIC 引擎根据孩子的薄弱点实时生成。如果暂时无法显示，可能是网络波动或引擎繁忙，请稍后刷新重试。
+                        练习题由 WinGo 学情引擎根据孩子的薄弱点实时生成。如果暂时无法显示，可能是网络波动或引擎繁忙，请稍后刷新重试。
                       </p>
                     </div>
                   )}

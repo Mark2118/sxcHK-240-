@@ -1,5 +1,5 @@
 /**
- * 百度试卷切题识别（paper_cut_edu）
+ * WinGo 试卷切题识别（paper_cut_edu）
  * 自动切分试卷题目，输出题干、选项、答案、参考答案的结构化数据
  */
 
@@ -19,7 +19,7 @@ async function getAccessToken(): Promise<string> {
   }
   const url = `https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${BAIDU_API_KEY}&client_secret=${BAIDU_SECRET_KEY}`
   const res = await fetch(url, { method: 'POST' })
-  if (!res.ok) throw new Error('获取百度 access_token 失败')
+  if (!res.ok) throw new Error('获取系统 access_token 失败')
   const data: BaiduTokenResponse = await res.json()
   cachedToken = { token: data.access_token, expiresAt: Date.now() + (data.expires_in - 300) * 1000 }
   return data.access_token

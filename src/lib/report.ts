@@ -358,10 +358,10 @@ export function renderReportHTML(
       <div class="wingo-name" style="color:#1e3a5f;font-size:16px;">WinGo 学情洞察</div>
     </div>
     <p>AI 驱动的家庭学情分析工具 · 让每个家庭都懂孩子的学习</p>
-    <p style="margin-top:4px;font-size:12px;color:#6b7280;">Powered by THU-MAIC OpenMAIC Engine · 清华大学多智能体交互课堂技术</p>
+    <p style="margin-top:4px;font-size:12px;color:#6b7280;">Powered by WinGo 学情引擎</p>
     <p>报告编号：${reportId} · 生成时间：${new Date().toLocaleString('zh-CN')}</p>
     <div class="disclaimer">
-      本报告由 WinGo 学情洞察软件自动生成，底层采用清华大学 THU-MAIC OpenMAIC 技术架构。数据仅供参考。本工具为家庭学情分析软件，不涉及任何教育培训、授课或辅导服务。
+      本报告由 WinGo 学情洞察软件自动生成。数据仅供参考。本工具为家庭学情分析软件，不涉及任何教育培训、授课或辅导服务。
     </div>
   </div>
 </div>

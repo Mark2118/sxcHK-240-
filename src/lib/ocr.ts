@@ -1,5 +1,5 @@
 /**
- * 百度 OCR 服务 — 试卷分析与识别（doc_analysis）
+ * WinGo OCR 服务 — 试卷分析与识别（doc_analysis）
  * 支持：手写/印刷混排、公式识别(LaTeX)、版面分析、竖式识别、涂改检测
  */
 
@@ -20,7 +20,7 @@ async function getAccessToken(): Promise<string> {
 
   const url = `https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${BAIDU_API_KEY}&client_secret=${BAIDU_SECRET_KEY}`
   const res = await fetch(url, { method: 'POST' })
-  if (!res.ok) throw new Error('获取百度 access_token 失败')
+  if (!res.ok) throw new Error('获取系统 access_token 失败')
 
   const data: BaiduTokenResponse = await res.json()
   cachedToken = {

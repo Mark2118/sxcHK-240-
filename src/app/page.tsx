@@ -50,7 +50,7 @@ const FAQS = [
   },
   {
     q: '分析结果准确吗？',
-    a: '我们采用清华大学 THU-MAIC OpenMAIC 技术架构，结合百度 AI 客观批改引擎。对于客观题，批改准确率超过 95%；对于主观题，AI 会提供详细的知识分析和参考解析，帮助家长理解孩子的答题思路。',
+    a: 'WinGo 学情洞察采用自研的 WinGo 学情引擎，结合智能批改技术。对于客观题，批改准确率超过 95%；对于主观题，AI 会提供详细的知识分析和参考解析，帮助家长理解孩子的答题思路。',
   },
   {
     q: '新用户有免费体验吗？',
@@ -129,7 +129,7 @@ export default function LandingPage() {
               <FadeIn>
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm border border-white/20">
                   <Sparkles size={14} className="text-amber-400" />
-                  <span>清华 OpenMAIC 技术驱动</span>
+                  <span>WinGo 学情引擎驱动</span>
                 </div>
               </FadeIn>
 
@@ -417,7 +417,7 @@ export default function LandingPage() {
               {
                 icon: Camera,
                 title: '拍照智能批改',
-                desc: '上传作业照片，百度 AI 自动切题、客观题自动判断对错，精度高达 95%',
+                desc: '上传作业照片，WinGo 自动切题、客观题自动判断对错，精度高达 95%',
                 step: '01',
               },
               {
@@ -597,20 +597,20 @@ export default function LandingPage() {
                     技术背书
                   </div>
                   <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                    清华技术，值得信赖
+                    WinGo 技术，值得信赖
                   </h2>
                   <p className="text-gray-600 leading-relaxed mb-6">
-                    WinGo 学情洞察由 WinGo 团队开发，底层 AI 引擎采用清华大学 THU-MAIC OpenMAIC 技术架构。
+                    WinGo 学情洞察由 WinGo 团队自主研发，底层采用 WinGo 学情引擎技术。
                     通过客观的数据分析，帮助家长清晰了解孩子的知识掌握情况，为家庭学习规划提供科学参考。
                   </p>
                   <div className="flex flex-wrap gap-4">
                     <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm">
                       <GraduationCap size={20} className="text-blue-800" />
-                      <span className="text-sm font-semibold text-gray-900">清华 OpenMAIC</span>
+                      <span className="text-sm font-semibold text-gray-900">WinGo 学情引擎</span>
                     </div>
                     <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm">
                       <Brain size={20} className="text-blue-800" />
-                      <span className="text-sm font-semibold text-gray-900">百度 AI 批改</span>
+                      <span className="text-sm font-semibold text-gray-900">WinGo 智能批改</span>
                     </div>
                   </div>
                 </div>

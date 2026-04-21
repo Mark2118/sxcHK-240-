@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. AI 深度分析（基于客观批改数据生成学情报告）
-    const fullText = `【客观批改数据】\n${analysisText}\n\n请基于以上客观数据，生成专业学情分析报告。注意：以上对错判断来自百度智能批改系统，是客观事实。你的任务是分析薄弱点、给出学习建议、推荐练习方向。`
+    const fullText = `【客观批改数据】\n${analysisText}\n\n请基于以上客观数据，生成专业学情分析报告。注意：以上对错判断来自 WinGo 智能批改系统，是客观事实。你的任务是分析薄弱点、给出学习建议、推荐练习方向。`
     const report = await analyzeHomework(fullText, subject)
     const html = renderReportHTML(report)
 

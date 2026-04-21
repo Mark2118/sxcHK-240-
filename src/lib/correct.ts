@@ -1,5 +1,5 @@
 /**
- * 百度智能作业批改
+ * WinGo 智能作业批改
  * 端到端批改：异步接口，提交→轮询获取结果
  * 支持：全学科作业/试卷自动批改，输出每道题对错、坐标、原因
  */
@@ -20,7 +20,7 @@ async function getAccessToken(): Promise<string> {
   }
   const url = `https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${BAIDU_API_KEY}&client_secret=${BAIDU_SECRET_KEY}`
   const res = await fetch(url, { method: 'POST' })
-  if (!res.ok) throw new Error('获取百度 access_token 失败')
+  if (!res.ok) throw new Error('获取系统 access_token 失败')
   const data: BaiduTokenResponse = await res.json()
   cachedToken = { token: data.access_token, expiresAt: Date.now() + (data.expires_in - 300) * 1000 }
   return data.access_token
@@ -84,7 +84,7 @@ export async function submitCorrectTask(imageBase64: string): Promise<string> {
 
   const data = await res.json()
   if (data.error_code && data.error_code !== '0') {
-    throw new Error(`百度批改错误: ${data.error_msg} (${data.error_code})`)
+    throw new Error(`批改错误: ${data.error_msg} (${data.error_code})`)
   }
 
   return data.result?.task_id
@@ -112,7 +112,7 @@ export async function getCorrectResult(taskId: string): Promise<CorrectResult | 
     return null
   }
   if (data.error_code && data.error_code !== '0') {
-    throw new Error(`百度批改错误: ${data.error_msg} (${data.error_code})`)
+    throw new Error(`批改错误: ${data.error_msg} (${data.error_code})`)
   }
 
   const imageResult = (data.imageResults || [])[0]
@@ -162,7 +162,7 @@ export async function pollCorrectResult(
   throw new Error('批改超时，请稍后通过报告ID查询结果')
 }
 
-/** 将百度批改结果转换为文本格式（用于AI进一步分析） */
+/** 将批改结果转换为文本格式（用于AI进一步分析） */
 export function correctResultToText(result: CorrectResult): string {
   const lines: string[] = []
   lines.push(`学科: ${result.subject}`)

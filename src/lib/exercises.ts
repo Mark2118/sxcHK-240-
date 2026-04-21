@@ -1,6 +1,6 @@
 /**
- * 个性化练习推荐引擎 —— OpenMAIC 版
- * 基于学情分析结果，调用 OpenMAIC 生成针对性练习
+ * 个性化练习推荐引擎 —— WinGo 学情引擎版
+ * 基于学情分析结果，调用 WinGo 学情引擎生成针对性练习
  * 定位：软件功能，非教育培训
  */
 
@@ -146,7 +146,7 @@ export async function generateExercises(
   const prompt = buildPrompt(weakPoints, moduleScores, subject)
   let text = ''
 
-  // 第一优先级：OpenMAIC
+  // 第一优先级：WinGo 学情引擎
   try {
     const res = await fetch(`${OPENMAIC_URL}/api/generate/scene-content`, {
       method: 'POST',
@@ -157,12 +157,12 @@ export async function generateExercises(
     if (res.ok) {
       const data = await res.json()
       text = data.content || data.result || data.text || ''
-      console.log('OpenMAIC 练习生成成功')
+      console.log('WinGo 学情引擎练习生成成功')
     } else {
-      throw new Error(`OpenMAIC HTTP ${res.status}`)
+      throw new Error(`WinGo 学情引擎 HTTP ${res.status}`)
     }
   } catch (e: any) {
-    console.warn('OpenMAIC 不可用，降级到直连 AI:', e.message)
+    console.warn('WinGo 学情引擎不可用，降级到直连 AI:', e.message)
 
     // 第二优先级：直连 MiniMax
     try {
@@ -200,7 +200,7 @@ export async function generateExercises(
   }
 }
 
-// 兜底练习题（OpenMAIC 不可用时）
+// 兜底练习题（WinGo 学情引擎不可用时）
 function fallbackExercises(
   weakPoints: string[],
   moduleScores: Array<{ module: string; scoreRate: number; status: string }>
