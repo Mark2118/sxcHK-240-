@@ -7,6 +7,7 @@ import { X, Check, Crown, Zap, Star, Loader2 } from 'lucide-react'
 interface PayModalProps {
   open: boolean
   onClose: () => void
+  onSuccess?: () => void
 }
 
 const PLANS = [
@@ -42,7 +43,7 @@ const PLANS = [
   },
 ]
 
-export default function PayModal({ open, onClose }: PayModalProps) {
+export default function PayModal({ open, onClose, onSuccess }: PayModalProps) {
   const { token, refreshUser } = useAuth()
   const [selected, setSelected] = useState<'single' | 'month' | 'year'>('month')
   const [loading, setLoading] = useState(false)
@@ -77,7 +78,6 @@ export default function PayModal({ open, onClose }: PayModalProps) {
 
       // Mock 模式下直接模拟支付成功
       if (data.mock) {
-        alert('【模拟支付】订单创建成功！模拟支付完成。')
         // 模拟回调
         await fetch('/xsc/api/orders/callback', {
           method: 'POST',
@@ -85,6 +85,7 @@ export default function PayModal({ open, onClose }: PayModalProps) {
           body: JSON.stringify({ orderId: data.orderId }),
         })
         await refreshUser()
+        onSuccess?.()
         onClose()
         setLoading(false)
         return
@@ -105,8 +106,8 @@ export default function PayModal({ open, onClose }: PayModalProps) {
           },
           async (res: any) => {
             if (res.err_msg === 'get_brand_wcpay_request:ok') {
-              alert('支付成功！')
               await refreshUser()
+              onSuccess?.()
               onClose()
             } else {
               setError('支付已取消或失败')
