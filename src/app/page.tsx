@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/lib/auth-context'
 import {
   Camera, Brain, BookOpen, TrendingUp, ChevronDown, Check,
   ArrowRight, Sparkles, Zap, Crown, Star, Shield, Clock,
-  BarChart3, GraduationCap, Lightbulb, MessageCircle
+  BarChart3, GraduationCap, Lightbulb, MessageCircle, User
 } from 'lucide-react'
 
 const PLANS = [
@@ -91,7 +92,34 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
 }
 
 export default function LandingPage() {
+  const { user, loading: authLoading } = useAuth()
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+
+  // 未登录：显示微信授权引导
+  if (!authLoading && !user) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-blue-900 flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <User size={40} className="text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-3">WinGo 学情洞察</h1>
+          <p className="text-blue-200 mb-8 text-lg">AI 驱动的家庭学情分析工具</p>
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-6">
+            <p className="text-white/90 mb-4">开始使用前，请先微信授权登录</p>
+            <button
+              onClick={() => { window.location.href = '/xsc/api/auth/wechat' }}
+              className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05a5.79 5.79 0 0 1-.153-1.323c0-3.668 3.617-6.64 8.074-6.64.298 0 .591.015.881.04C17.886 4.95 13.647 2.188 8.691 2.188zM5.785 7.572a.938.938 0 1 1 0 1.876.938.938 0 0 1 0-1.876zm5.812 0a.938.938 0 1 1 0 1.876.938.938 0 0 1 0-1.876zm4.5 5.063c-3.946 0-7.146 2.36-7.146 5.273 0 2.91 3.2 5.272 7.146 5.272a8.86 8.86 0 0 0 2.443-.348.746.746 0 0 1 .617.084l1.638.96a.28.28 0 0 0 .144.046.253.253 0 0 0 .25-.254c0-.062-.025-.123-.042-.184l-.336-1.274a.51.51 0 0 1 .184-.573c1.578-1.162 2.576-2.896 2.576-4.826 0-2.912-3.2-5.272-7.146-5.272zm-2.531 3.094a.703.703 0 1 1 0 1.406.703.703 0 0 1 0-1.406zm5.063 0a.703.703 0 1 1 0 1.406.703.703 0 0 1 0-1.406z"/></svg>
+              微信一键登录
+            </button>
+          </div>
+          <p className="text-blue-300/60 text-sm">登录即表示同意服务条款与隐私政策</p>
+        </div>
+      </main>
+    )
+  }
 
   return (
     <main className="min-h-screen bg-white overflow-x-hidden">

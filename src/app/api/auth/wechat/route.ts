@@ -12,13 +12,13 @@ const isMock = !APP_ID || !APP_SECRET
 /**
  * GET /api/auth/wechat
  * 处理微信授权回调（带 code 参数）
- * 或生成授权 URL（无 code 参数）
+ * 或跳转到微信授权（无 code 参数）
  */
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams
   const code = searchParams.get('code')
 
-  // 无 code：生成授权 URL（供前端跳转）
+  // 无 code：直接跳转到微信授权页面
   if (!code) {
     if (isMock) {
       return handleMockLogin()
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     const redirectUri = encodeURIComponent(`${BASE_URL}/api/auth/wechat`)
     const scope = 'snsapi_userinfo'
     const authUrl = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${APP_ID}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=winGo#wechat_redirect`
-    return NextResponse.json({ url: authUrl })
+    return NextResponse.redirect(authUrl)
   }
 
   // 有 code：处理微信回调
@@ -71,8 +71,8 @@ export async function GET(req: NextRequest) {
     // 4. 生成 JWT
     const token = await createToken({ userId: user.id, openid: user.openid })
 
-    // 5. 写入 cookie 并重定向
-    const response = NextResponse.redirect(`${BASE_URL}/dashboard`)
+    // 5. 写入 cookie 并重定向到 analyze 页面
+    const response = NextResponse.redirect(`${BASE_URL}/analyze`)
     response.cookies.set('auth-token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -88,8 +88,13 @@ export async function GET(req: NextRequest) {
 }
 
 /**
- * Mock 登录（开发测试用）
+ * POST /api/auth/wechat
+ * Mock 登录（开发测试用，保留兼容）
  */
+export async function POST(req: NextRequest) {
+  return handleMockLogin()
+}
+
 async function handleMockLogin() {
   const mockOpenid = 'mock_' + Date.now()
   let user = dbClient.users.findByOpenid(mockOpenid)
@@ -98,7 +103,7 @@ async function handleMockLogin() {
   }
 
   const token = await createToken({ userId: user.id, openid: user.openid })
-  const response = NextResponse.redirect(`${BASE_URL}/dashboard`)
+  const response = NextResponse.redirect(`${BASE_URL}/analyze`)
   response.cookies.set('auth-token', token, {
     httpOnly: true,
     secure: false,

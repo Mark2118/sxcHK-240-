@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 import { dbClient } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest) {
   const token = req.cookies.get('auth-token')?.value
   if (!token) return NextResponse.json({ error: '未登录' }, { status: 401 })
@@ -14,7 +16,7 @@ export async function GET(req: NextRequest) {
 
   const limit = dbClient.userLimits.findByUserId(user.id)
   return NextResponse.json({
-    user: { id: user.id, nickname: user.nickname, avatar: user.avatar, createdAt: user.createdAt },
-    limit: limit ? { freeCount: limit.freeCount, memberType: limit.memberType, memberExpire: limit.memberExpire } : null,
+    success: true,
+    user: { id: user.id, openid: user.openid, nickname: user.nickname, avatar: user.avatar, createdAt: user.createdAt, freeUsesLeft: limit?.freeCount ?? 3, membershipType: limit?.memberType ?? 'none', membershipExpiresAt: limit?.memberExpire ?? null },
   })
 }
