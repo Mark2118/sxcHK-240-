@@ -71,3 +71,4 @@ test-*.json
 
 # Test assets
 /test-images/
+*.tar.gz
