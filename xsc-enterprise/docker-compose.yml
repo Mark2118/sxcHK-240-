@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+  xsc-enterprise:
+    build: { context: ., dockerfile: Dockerfile }
+    container_name: wingo-xsc
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:./data/wingo-xsc.db
+      - AI_PROVIDER=minimax
+      - AI_API_KEY=${AI_API_KEY}
+      - AI_BASE_URL=https://api.minimaxi.com/v1
+      - AI_MODEL=MiniMax-M2.7-highspeed
+      - BAIDU_API_KEY=${BAIDU_API_KEY}
+      - BAIDU_SECRET_KEY=${BAIDU_SECRET_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - MASTER_KEY=${MASTER_KEY}
+      - OPENMAIC_URL=${OPENMAIC_URL:-http://100.106.90.55:3000}
+      - WECHAT_APPID=${WECHAT_APPID}
+      - WECHAT_SECRET=${WECHAT_SECRET}
+      - WECHAT_MCHID=${WECHAT_MCHID}
+      - WECHAT_APIV3_KEY=${WECHAT_APIV3_KEY}
+      - WECHAT_CERT_SERIAL_NO=${WECHAT_CERT_SERIAL_NO}
+      - WECHAT_PRIVATE_KEY=${WECHAT_PRIVATE_KEY}
+      - WECHAT_PAY_NOTIFY_URL=${WECHAT_PAY_NOTIFY_URL}
+      - WECHAT_PAY_MOCK=${WECHAT_PAY_MOCK:-false}
+    volumes:
+      - xsc-data:/app/data
+    restart: unless-stopped
+    networks:
+      - wingo-network
+
+volumes:
+  xsc-data:
+
+networks:
+  wingo-network:
+    driver: bridge

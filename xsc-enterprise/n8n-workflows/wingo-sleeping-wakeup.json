@@ -1,0 +1,87 @@
+{
+  "name": "WinGo Sleeping User Wakeup",
+  "nodes": [
+    {
+      "id": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+      "name": "Daily 10AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24,
+              "triggerAtHour": 10,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q",
+      "name": "Fetch Sleeping Users",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "=http://100.92.188.101:3000/api/marketing/sleeping-users",
+        "options": { "retry": { "retry": true, "maxRetries": 3, "waitBetweenRetries": 2000 } }
+      }
+    },
+    {
+      "id": "3c4d5e6f-7g8h-9i0j-1k2l-3m4n5o6p7q8r",
+      "name": "Has Sleeping Users?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [650, 300],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            { "id": "cond-1", "leftValue": "={{ $json.count }}", "rightValue": "0", "operator": { "type": "number", "operation": "gt" } }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "4d5e6f7g-8h9i-0j1k-2l3m-4n5o6p7q8r9s",
+      "name": "Send to Feishu",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.feishu.cn/open-apis/bot/v2/hook/7c7bb761-fac1-49f3-a52f-4e74d77c569d",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"msg_type\":\"text\",\"content\":{\"text\":\"😴 沉睡用户提醒\\n\\n发现 {{ $json.count }} 位家长超过3天未使用：\\n\\n{{ $json.users.map(u => '- ' + (u.nickname || u.openid.slice(0,8)) + '（最后使用：' + (u.lastReportAt || '从未使用') + '）').join('\\n') }}\\n\\n建议跟进转化。\"}}",
+        "options": { "retry": { "retry": true, "maxRetries": 3, "waitBetweenRetries": 2000 } }
+      }
+    }
+  ],
+  "connections": {
+    "Daily 10AM": {
+      "main": [[{ "node": "Fetch Sleeping Users", "type": "main", "index": 0 }]]
+    },
+    "Fetch Sleeping Users": {
+      "main": [[{ "node": "Has Sleeping Users?", "type": "main", "index": 0 }]]
+    },
+    "Has Sleeping Users?": {
+      "main": [
+        [{ "node": "Send to Feishu", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Shanghai"
+  },
+  "staticData": null,
+  "tags": []
+}

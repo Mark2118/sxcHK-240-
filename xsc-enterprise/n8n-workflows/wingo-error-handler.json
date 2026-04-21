@@ -1,0 +1,41 @@
+{
+  "name": "WinGo Error Handler",
+  "nodes": [
+    {
+      "id": "7a3c9e12-4b58-42f1-a9d6-8e2f5c6d7a8b",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "parameters": {}
+    },
+    {
+      "id": "9f4d8b23-5c69-43g2-b0e7-9f3g6d7e8b9c",
+      "name": "Send Error to Feishu",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.feishu.cn/open-apis/bot/v2/hook/7c7bb761-fac1-49f3-a52f-4e74d77c569d",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"msg_type\":\"text\",\"content\":{\"text\":\"❌ n8n工作流执行失败\\n\\n工作流：{{ $json.workflow.name }}\\n节点：{{ $json.execution.lastNodeExecuted }}\\n错误：{{ $json.execution.error.message }}\\n时间：{{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}\"}}",
+        "options": { "retry": { "retry": true, "maxRetries": 3, "waitBetweenRetries": 2000 } }
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [{ "node": "Send Error to Feishu", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Shanghai"
+  },
+  "staticData": null,
+  "tags": []
+}

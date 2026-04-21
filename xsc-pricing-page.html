@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WinGo学情管家 — 拍一拍作业，15秒看懂孩子学得怎么样</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #faf8f5; }
+  .soft-shadow { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+  .card-hover { transition: all 0.3s ease; }
+  .card-hover:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
+  .gradient-warm { background: linear-gradient(135deg, #f97316 0%, #fb923c 50%, #fdba74 100%); }
+  .gradient-hero { background: linear-gradient(180deg, #fff7ed 0%, #faf8f5 100%); }
+  .chat-bubble-left { background: #fff; border-radius: 18px 18px 18px 4px; }
+  .chat-bubble-right { background: #fef3c7; border-radius: 18px 18px 4px 18px; }
+  .step-circle { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; }
+  .tag { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- ==================== 顶部信任条 ==================== -->
+<div class="bg-orange-50 border-b border-orange-100">
+  <div class="max-w-lg mx-auto px-5 py-2.5 flex items-center justify-center gap-2 text-xs text-orange-700">
+    <span class="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+    <span>已有 <strong>1,247</strong> 位家长正在使用 · 累计分析 <strong>8,632</strong> 份作业</span>
+  </div>
+</div>
+
+<!-- ==================== HERO ==================== -->
+<div class="gradient-hero pt-10 pb-12">
+  <div class="max-w-lg mx-auto px-5 text-center">
+    <!-- 品牌 -->
+    <div class="flex items-center justify-center gap-2 mb-6">
+      <div class="w-9 h-9 gradient-warm rounded-xl flex items-center justify-center text-white font-bold text-base">W</div>
+      <span class="text-base font-bold text-gray-800">WinGo学情管家</span>
+    </div>
+    
+    <h1 class="text-[28px] font-extrabold text-gray-900 leading-snug mb-4">
+      拍一拍作业<br>
+      <span class="text-orange-500">15秒</span>看懂孩子学得怎么样
+    </h1>
+    
+    <p class="text-[15px] text-gray-500 leading-relaxed mb-8">
+      不用下载App，微信里就能用。<br>
+      孩子哪里会、哪里不会，管家帮您标出来。
+    </p>
+    
+    <!-- 主CTA -->
+    <button class="gradient-warm text-white font-bold text-lg px-10 py-4 rounded-2xl soft-shadow w-full mb-4 hover:opacity-95 transition">
+      免费试用 · 前2次不要钱
+    </button>
+    <p class="text-xs text-gray-400">👆 点一下，微信里直接开始</p>
+    
+    <!-- 三个小卖点横排 -->
+    <div class="flex items-center justify-center gap-4 mt-8 text-xs text-gray-500">
+      <span class="flex items-center gap-1"><span class="text-green-500">✓</span> 不用绑卡</span>
+      <span class="flex items-center gap-1"><span class="text-green-500">✓</span> 自动出报告</span>
+      <span class="flex items-center gap-1"><span class="text-green-500">✓</span> 老人也会用</span>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 场景痛点：微信聊天形式 ==================== -->
+<div class="bg-white py-12">
+  <div class="max-w-lg mx-auto px-5">
+    <h2 class="text-xl font-bold text-gray-900 text-center mb-8">这些问题，是不是您也遇到过？</h2>
+    
+    <!-- 聊天对话 -->
+    <div class="space-y-4 mb-8">
+      <div class="flex gap-3">
+        <div class="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center text-lg flex-shrink-0">👩</div>
+        <div class="chat-bubble-left soft-shadow px-4 py-3 text-sm text-gray-700 max-w-[80%]">
+          孩子这次考了78分，我说"要努力"，但到底该努力什么？我自己也说不清楚...
+        </div>
+      </div>
+      <div class="flex gap-3 justify-end">
+        <div class="chat-bubble-right soft-shadow px-4 py-3 text-sm text-gray-800 max-w-[80%]">
+          同班都在报班，不报怕落后，报了怕冤枉钱。钱花了，效果呢？
+        </div>
+        <div class="w-9 h-9 bg-orange-100 rounded-full flex items-center justify-center text-lg flex-shrink-0">👨</div>
+      </div>
+      <div class="flex gap-3">
+        <div class="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center text-lg flex-shrink-0">👵</div>
+        <div class="chat-bubble-left soft-shadow px-4 py-3 text-sm text-gray-700 max-w-[80%]">
+          每天盯着写作业，但不知道盯得对不对。时间花了，薄弱点解决了吗？
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-orange-50 rounded-2xl p-5 text-center border border-orange-100">
+      <p class="text-[15px] text-gray-700 font-medium">
+        WinGo管家帮您把 <span class="text-orange-600 font-bold">"感觉"</span> 变成 <span class="text-orange-600 font-bold">"数据"</span>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 三步看懂孩子 ==================== -->
+<div class="bg-[#faf8f5] py-12">
+  <div class="max-w-lg mx-auto px-5">
+    <h2 class="text-xl font-bold text-gray-900 text-center mb-2">三步看懂孩子</h2>
+    <p class="text-sm text-gray-400 text-center mb-8">不用懂教育，管家帮您看</p>
+    
+    <div class="space-y-6">
+      <!-- Step 1 -->
+      <div class="bg-white rounded-2xl p-5 soft-shadow card-hover">
+        <div class="flex items-start gap-4">
+          <div class="step-circle gradient-warm text-white flex-shrink-0">1</div>
+          <div>
+            <h3 class="font-bold text-gray-900 text-lg mb-1">拍一拍作业</h3>
+            <p class="text-sm text-gray-500 leading-relaxed">手写、印刷、涂改、拍得歪歪扭扭都没关系，管家都能读。</p>
+            <div class="flex gap-2 mt-3">
+              <span class="tag bg-blue-50 text-blue-600">📷 拍照上传</span>
+              <span class="tag bg-green-50 text-green-600">⏱ 15秒出结果</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Step 2 -->
+      <div class="bg-white rounded-2xl p-5 soft-shadow card-hover">
+        <div class="flex items-start gap-4">
+          <div class="step-circle bg-green-500 text-white flex-shrink-0">2</div>
+          <div>
+            <h3 class="font-bold text-gray-900 text-lg mb-1">看分析报告</h3>
+            <p class="text-sm text-gray-500 leading-relaxed">哪里会、哪里不会、为什么不会，管家一条一条标出来。不是笼统的"粗心"，是"进位加法不熟练"。</p>
+            <div class="flex gap-2 mt-3">
+              <span class="tag bg-purple-50 text-purple-600">📊 知识点拆解</span>
+              <span class="tag bg-orange-50 text-orange-600">🎯 薄弱点定位</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Step 3 -->
+      <div class="bg-white rounded-2xl p-5 soft-shadow card-hover">
+        <div class="flex items-start gap-4">
+          <div class="step-circle bg-amber-500 text-white flex-shrink-0">3</div>
+          <div>
+            <h3 class="font-bold text-gray-900 text-lg mb-1">管家持续跟踪</h3>
+            <p class="text-sm text-gray-500 leading-relaxed">每次分析都记入档案。这个月比上个月进步了吗？哪个模块一直拖后腿？管家越用越懂您的孩子。</p>
+            <div class="flex gap-2 mt-3">
+              <span class="tag bg-pink-50 text-pink-600">📈 成长曲线</span>
+              <span class="tag bg-cyan-50 text-cyan-600">📋 错题归档</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 真实家长怎么说 ==================== -->
+<div class="bg-white py-12">
+  <div class="max-w-lg mx-auto px-5">
+    <h2 class="text-xl font-bold text-gray-900 text-center mb-8">家长们怎么说</h2>
+    
+    <div class="space-y-4">
+      <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 bg-pink-200 rounded-full flex items-center justify-center text-pink-700 font-bold text-sm">林</div>
+          <div>
+            <p class="text-sm font-semibold text-gray-900">林妈妈 · 六年级</p>
+            <p class="text-xs text-gray-400">使用 3 个月 · 年卡用户</p>
+          </div>
+        </div>
+        <p class="text-sm text-gray-600 leading-relaxed">"以前孩子考80分我觉得还行，考70分就着急。现在管家告诉我，孩子计算题基本全对，但应用题理解力弱。我就有针对性地练，不用广撒网了。"</p>
+      </div>
+      
+      <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 bg-blue-200 rounded-full flex items-center justify-center text-blue-700 font-bold text-sm">张</div>
+          <div>
+            <p class="text-sm font-semibold text-gray-900">张爸爸 · 四年级</p>
+            <p class="text-xs text-gray-400">使用 1 个月 · 月卡用户</p>
+          </div>
+        </div>
+        <p class="text-sm text-gray-600 leading-relaxed">"最让我惊喜的是错题本功能。以前都是我帮孩子抄错题，现在拍照就自动归类了。周末打印出来练，比自己整理的还清楚。"</p>
+      </div>
+      
+      <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 bg-green-200 rounded-full flex items-center justify-center text-green-700 font-bold text-sm">王</div>
+          <div>
+            <p class="text-sm font-semibold text-gray-900">王奶奶 · 帮带孙子</p>
+            <p class="text-xs text-gray-400">使用 2 周 · 免费版</p>
+          </div>
+        </div>
+        <p class="text-sm text-gray-600 leading-relaxed">"我不会用那些复杂的App，这个微信里就能用，拍个照就行。儿子上班忙，我拍了管家出的报告发给他看，他知道孩子今天学了什么。"</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 能帮您做什么（场景卡片）==================== -->
+<div class="bg-[#faf8f5] py-12">
+  <div class="max-w-lg mx-auto px-5">
+    <h2 class="text-xl font-bold text-gray-900 text-center mb-8">管家能帮您做什么</h2>
+    
+    <div class="grid grid-cols-2 gap-4">
+      <div class="bg-white rounded-2xl p-5 soft-shadow text-center card-hover">
+        <div class="text-3xl mb-3">🎯</div>
+        <h4 class="font-bold text-gray-900 text-sm mb-1">精准定位薄弱点</h4>
+        <p class="text-xs text-gray-500">不是"粗心"，是"进位不熟练"</p>
+      </div>
+      <div class="bg-white rounded-2xl p-5 soft-shadow text-center card-hover">
+        <div class="text-3xl mb-3">📚</div>
+        <h4 class="font-bold text-gray-900 text-sm mb-1">智能错题本</h4>
+        <p class="text-xs text-gray-500">自动归类，支持打印</p>
+      </div>
+      <div class="bg-white rounded-2xl p-5 soft-shadow text-center card-hover">
+        <div class="text-3xl mb-3">🔄</div>
+        <h4 class="font-bold text-gray-900 text-sm mb-1">旧题新做</h4>
+        <p class="text-xs text-gray-500">擦掉笔迹，卷子变新卷</p>
+      </div>
+      <div class="bg-white rounded-2xl p-5 soft-shadow text-center card-hover">
+        <div class="text-3xl mb-3">📊</div>
+        <h4 class="font-bold text-gray-900 text-sm mb-1">成长趋势图</h4>
+        <p class="text-xs text-gray-500">每月一张学习体检表</p>
+      </div>
+      <div class="bg-white rounded-2xl p-5 soft-shadow text-center card-hover">
+        <div class="text-3xl mb-3">👶</div>
+        <h4 class="font-bold text-gray-900 text-sm mb-1">多孩档案</h4>
+        <p class="text-xs text-gray-500">一个账号，各管各的</p>
+      </div>
+      <div class="bg-white rounded-2xl p-5 soft-shadow text-center card-hover">
+        <div class="text-3xl mb-3">💡</div>
+        <h4 class="font-bold text-gray-900 text-sm mb-1">报班建议</h4>
+        <p class="text-xs text-gray-500">该花的花，不该花的不花</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 不同阶段 ==================== -->
+<div class="bg-white py-12">
+  <div class="max-w-lg mx-auto px-5">
+    <h2 class="text-xl font-bold text-gray-900 text-center mb-2">不同阶段，管家不同用法</h2>
+    <p class="text-sm text-gray-400 text-center mb-8">中间年级也适用，自动识别</p>
+    
+    <div class="space-y-4">
+      <div class="bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-6 border border-pink-100">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 bg-pink-400 rounded-xl flex items-center justify-center text-white font-bold">幼</div>
+          <div>
+            <h3 class="font-bold text-gray-900">幼升小 · 入学管家</h3>
+            <p class="text-xs text-gray-500">孩子 ready 了吗？</p>
+          </div>
+        </div>
+        <ul class="space-y-2 text-sm text-gray-600">
+          <li class="flex items-start gap-2"><span class="text-pink-400 mt-1">●</span>入学准备度评分</li>
+          <li class="flex items-start gap-2"><span class="text-pink-400 mt-1">●</span>幼小衔接重点建议</li>
+          <li class="flex items-start gap-2"><span class="text-pink-400 mt-1">●</span>该报班吗？报什么？</li>
+        </ul>
+      </div>
+      
+      <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-100">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-white font-bold">升</div>
+          <div>
+            <h3 class="font-bold text-gray-900">小升初 · 升学管家</h3>
+            <p class="text-xs text-gray-500">能考上目标初中吗？</p>
+          </div>
+        </div>
+        <ul class="space-y-2 text-sm text-gray-600">
+          <li class="flex items-start gap-2"><span class="text-blue-400 mt-1">●</span>升学竞争力指数</li>
+          <li class="flex items-start gap-2"><span class="text-blue-400 mt-1">●</span>薄弱模块靶向突破</li>
+          <li class="flex items-start gap-2"><span class="text-blue-400 mt-1">●</span>暑假该补什么？</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 定价卡片 ==================== -->
+<div class="bg-[#faf8f5] py-12">
+  <div class="max-w-lg mx-auto px-5">
+    <h2 class="text-xl font-bold text-gray-900 text-center mb-2">选一个适合您的方案</h2>
+    <p class="text-sm text-gray-400 text-center mb-8">年卡每天只要 8 毛钱</p>
+    
+    <div class="space-y-4">
+      <!-- 体验版 -->
+      <div class="bg-white rounded-2xl p-6 soft-shadow border-2 border-gray-100">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-bold text-gray-900 text-lg">体验版</h3>
+          <span class="text-2xl font-extrabold text-gray-900">¥0</span>
+        </div>
+        <p class="text-sm text-gray-500 mb-4">每月 2 次免费分析，永久有效</p>
+        <ul class="space-y-2 text-sm text-gray-600">
+          <li class="flex items-center gap-2"><span class="text-green-500">✓</span>拍照分析作业</li>
+          <li class="flex items-center gap-2"><span class="text-green-500">✓</span>查看完整报告</li>
+          <li class="flex items-center gap-2"><span class="text-gray-300">✗</span>微信推送报告</li>
+          <li class="flex items-center gap-2"><span class="text-gray-300">✗</span>历史回看（仅最近2次）</li>
+        </ul>
+      </div>
+      
+      <!-- 月卡 -->
+      <div class="bg-white rounded-2xl p-6 soft-shadow border-2 border-gray-100">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-bold text-gray-900 text-lg">月卡</h3>
+          <span class="text-2xl font-extrabold text-gray-900">¥39<span class="text-sm font-normal text-gray-400">/月</span></span>
+        </div>
+        <p class="text-sm text-gray-500 mb-4">每月 100 次分析，适合短期冲刺</p>
+        <ul class="space-y-2 text-sm text-gray-600">
+          <li class="flex items-center gap-2"><span class="text-green-500">✓</span>拍照分析作业</li>
+          <li class="flex items-center gap-2"><span class="text-green-500">✓</span>微信推送报告</li>
+          <li class="flex items-center gap-2"><span class="text-green-500">✓</span>30天内历史回看</li>
+          <li class="flex items-center gap-2"><span class="text-gray-300">✗</span>成长趋势图</li>
+        </ul>
+      </div>
+      
+      <!-- 年卡 推荐 -->
+      <div class="bg-white rounded-2xl p-6 soft-shadow border-2 border-orange-300 relative">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+          <span class="gradient-warm text-white text-xs font-bold px-4 py-1.5 rounded-full">⭐ 最多家长选择</span>
+        </div>
+        <div class="flex items-center justify-between mb-3 mt-2">
+          <h3 class="font-bold text-gray-900 text-lg">年卡</h3>
+          <div class="text-right">
+            <span class="text-2xl font-extrabold text-orange-600">¥299<span class="text-sm font-normal text-gray-400">/年</span></span>
+            <p class="text-xs text-orange-500">每天只要 8 毛钱</p>
+          </div>
+        </div>
+        <p class="text-sm text-gray-500 mb-4">每月 300 次分析，全年管家服务</p>
+        <ul class="space-y-2 text-sm text-gray-600">
+          <li class="flex items-center gap-2"><span class="text-green-500">✓</span>月卡全部功能</li>
+          <li class="flex items-center gap-2"><span class="text-green-500">✓</span>成长趋势图（全年追踪）</li>
+          <li class="flex items-center gap-2"><span class="text-green-500">✓</span>智能错题本汇总</li>
+          <li class="flex items-center gap-2"><span class="text-green-500">✓</span>空白卷还原（旧题新做）</li>
+          <li class="flex items-center gap-2"><span class="text-green-500">✓</span>全年历史报告回看</li>
+        </ul>
+      </div>
+    </div>
+    
+    <!-- 小提示 -->
+    <div class="bg-blue-50 rounded-xl p-4 mt-6 border border-blue-100">
+      <p class="text-sm text-blue-700 text-center">
+        💡 <strong>建议：</strong>先用免费版拍 2 次作业，看看报告质量。满意再开通，不满意一分钱不花。
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== FAQ ==================== -->
+<div class="bg-white py-12">
+  <div class="max-w-lg mx-auto px-5">
+    <h2 class="text-xl font-bold text-gray-900 text-center mb-8">您可能还想问</h2>
+    
+    <div class="space-y-4">
+      <div class="bg-gray-50 rounded-xl p-5 border border-gray-100">
+        <h4 class="font-semibold text-gray-900 mb-2 text-sm">免费次数用完了怎么办？</h4>
+        <p class="text-sm text-gray-600">可以开通月卡或年卡。每个月1号免费次数会自动恢复，不想花钱就等下个月。</p>
+      </div>
+      <div class="bg-gray-50 rounded-xl p-5 border border-gray-100">
+        <h4 class="font-semibold text-gray-900 mb-2 text-sm">两个孩子能用一个账号吗？</h4>
+        <p class="text-sm text-gray-600">可以。添加多个孩子档案，每个孩子的学习数据分开统计，互不干扰。</p>
+      </div>
+      <div class="bg-gray-50 rounded-xl p-5 border border-gray-100">
+        <h4 class="font-semibold text-gray-900 mb-2 text-sm">能分析语文和英语吗？</h4>
+        <p class="text-sm text-gray-600">目前主要支持数学。语文英语正在开发中，年卡用户会自动获得更新，不用额外付费。</p>
+      </div>
+      <div class="bg-gray-50 rounded-xl p-5 border border-gray-100">
+        <h4 class="font-semibold text-gray-900 mb-2 text-sm">拍得不清楚怎么办？</h4>
+        <p class="text-sm text-gray-600">管家支持手写、印刷、涂改、倾斜拍摄。如果确实识别不了，会提示您重拍，不扣次数。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 底部CTA ==================== -->
+<div class="gradient-warm py-12">
+  <div class="max-w-lg mx-auto px-5 text-center">
+    <h2 class="text-2xl font-bold text-white mb-3">看看孩子到底学得怎么样</h2>
+    <p class="text-orange-100 mb-8 text-sm">前 2 次免费，不用绑卡 · 微信里直接就能用</p>
+    <button class="bg-white text-orange-600 font-bold text-lg px-10 py-4 rounded-2xl w-full soft-shadow hover:bg-orange-50 transition">
+      免费试用
+    </button>
+    <p class="text-orange-200 text-xs mt-4">已有 1,247 位家长在用 · 不满意不花钱</p>
+  </div>
+</div>
+
+<!-- ==================== FOOTER ==================== -->
+<div class="bg-gray-900 py-8">
+  <div class="max-w-lg mx-auto px-5 text-center">
+    <div class="flex items-center justify-center gap-2 mb-3">
+      <div class="w-7 h-7 gradient-warm rounded-lg flex items-center justify-center text-white font-bold text-sm">W</div>
+      <span class="text-gray-300 font-semibold text-sm">WinGo学情管家</span>
+    </div>
+    <p class="text-gray-500 text-xs">让每个家庭都懂孩子的学习</p>
+    <p class="text-gray-600 text-xs mt-2">学情信息服务 · 非培训机构</p>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WinGo 学情洞察 — 项目驾驶舱</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #0f172a; color: #e2e8f0; }
+  .glass { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+  .progress-bar { height: 8px; border-radius: 4px; background: #1e293b; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+  .status-done { color: #10b981; }
+  .status-hold { color: #f59e0b; }
+  .status-pending { color: #64748b; }
+  .status-risk { color: #ef4444; }
+  .metric-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid rgba(255,255,255,0.06); }
+  .glow-green { box-shadow: 0 0 20px rgba(16, 185, 129, 0.15); }
+  .glow-amber { box-shadow: 0 0 20px rgba(245, 158, 11, 0.15); }
+  .glow-red { box-shadow: 0 0 20px rgba(239, 68, 68, 0.15); }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- Header -->
+<div class="border-b border-slate-700/50 bg-slate-900/80">
+  <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">W</div>
+      <div>
+        <h1 class="text-lg font-bold text-white">WinGo 学情洞察</h1>
+        <p class="text-xs text-slate-400">项目驾驶舱 · 02号工作站</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 text-sm">
+      <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span><span class="text-amber-400">挂起状态</span></span>
+      <span class="text-slate-500">|</span>
+      <span class="text-slate-400">2026-04-21</span>
+    </div>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-6 py-8">
+
+  <!-- 核心指标 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="metric-card rounded-xl p-5 glow-green">
+      <p class="text-slate-400 text-xs mb-1">产品定位</p>
+      <p class="text-white font-bold text-lg">学情管家</p>
+      <p class="text-emerald-400 text-xs mt-1">决策辅助 · 不是工具</p>
+    </div>
+    <div class="metric-card rounded-xl p-5 glow-amber">
+      <p class="text-slate-400 text-xs mb-1">核心利润</p>
+      <p class="text-white font-bold text-lg">年卡 ¥299</p>
+      <p class="text-amber-400 text-xs mt-1">月卡 ¥39 · 体验免费</p>
+    </div>
+    <div class="metric-card rounded-xl p-5">
+      <p class="text-slate-400 text-xs mb-1">目标人群</p>
+      <p class="text-white font-bold text-lg">小升初 · 幼升小</p>
+      <p class="text-slate-400 text-xs mt-1">兼容全年级 · 多孩支持</p>
+    </div>
+    <div class="metric-card rounded-xl p-5 glow-red">
+      <p class="text-slate-400 text-xs mb-1">最大阻塞</p>
+      <p class="text-white font-bold text-lg">域名备案</p>
+      <p class="text-red-400 text-xs mt-1">wingo.asia 备案中</p>
+    </div>
+  </div>
+
+  <!-- 总体进度 -->
+  <div class="glass rounded-xl p-6 mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-white font-bold text-lg">项目总体进度</h2>
+      <span class="text-2xl font-bold text-emerald-400">45%</span>
+    </div>
+    <div class="progress-bar mb-3">
+      <div class="progress-fill bg-gradient-to-r from-emerald-500 to-cyan-500" style="width: 45%"></div>
+    </div>
+    <div class="flex justify-between text-xs text-slate-400">
+      <span>产品策划期</span>
+      <span>开发中</span>
+      <span>内测</span>
+      <span>上线</span>
+    </div>
+  </div>
+
+  <!-- 模块状态 -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
+    <!-- 已完成 -->
+    <div class="glass rounded-xl p-5">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+        <h3 class="text-white font-bold">已完成 · 8项</h3>
+      </div>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-300">产品定位（管家/决策辅助）</span>
+          <span class="status-done">✓</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-300">三档定价策略</span>
+          <span class="status-done">✓</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-300">目标人群定义</span>
+          <span class="status-done">✓</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-300">技术架构决策</span>
+          <span class="status-done">✓</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-300">品牌文案（去厂商化）</span>
+          <span class="status-done">✓</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-300">落地页（桌面版确定 · 手机版参考已存档）</span>
+          <span class="status-done">✓</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-300">成本收益测算</span>
+          <span class="status-done">✓</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-300">竞品定价对比分析</span>
+          <span class="status-done">✓</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-300">自动化营销（n8n后端埋点+工作流）</span>
+          <span class="status-done">✓</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 挂起/进行中 -->
+    <div class="glass rounded-xl p-5">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="w-3 h-3 rounded-full bg-amber-500 animate-pulse"></span>
+        <h3 class="text-white font-bold">挂起 · 5项</h3>
+      </div>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-300">数据库模型扩展</span>
+          <span class="status-hold">⏸</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-300">通用 prompt 框架</span>
+          <span class="status-hold">⏸</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-300">动态报告模板</span>
+          <span class="status-hold">⏸</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-300">成长趋势功能</span>
+          <span class="status-hold">⏸</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-300">微信支付前端接入</span>
+          <span class="status-hold">⏸</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 待启动 -->
+    <div class="glass rounded-xl p-5">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="w-3 h-3 rounded-full bg-slate-600"></span>
+        <h3 class="text-white font-bold">待启动 · 6项</h3>
+      </div>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-400">语文/英语学科扩展</span>
+          <span class="status-pending">○</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-400">多孩档案管理</span>
+          <span class="status-pending">○</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-400">微信模板消息推送</span>
+          <span class="status-pending">○</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-400">阿里云部署上线</span>
+          <span class="status-pending">○</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-400">备案完成切域名</span>
+          <span class="status-pending">○</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-slate-400">内测用户招募</span>
+          <span class="status-pending">○</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 关键决策 + 风险 -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="glass rounded-xl p-6">
+      <h3 class="text-white font-bold mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        关键决策（已定）
+      </h3>
+      <div class="space-y-3 text-sm">
+        <div class="flex gap-3">
+          <span class="text-blue-400 flex-shrink-0">定价</span>
+          <span class="text-slate-300">体验免费 / 月卡¥39(100次) / 年卡¥299(300次)</span>
+        </div>
+        <div class="flex gap-3">
+          <span class="text-blue-400 flex-shrink-0">人群</span>
+          <span class="text-slate-300">小升初重点 + 幼升小 + 全年级兼容</span>
+        </div>
+        <div class="flex gap-3">
+          <span class="text-blue-400 flex-shrink-0">架构</span>
+          <span class="text-slate-300">一套代码 + 年级动态切换（放弃三Docker）</span>
+        </div>
+        <div class="flex gap-3">
+          <span class="text-blue-400 flex-shrink-0">品牌</span>
+          <span class="text-slate-300">只提 WinGo，不提百度/MiniMax</span>
+        </div>
+        <div class="flex gap-3">
+          <span class="text-blue-400 flex-shrink-0">限额</span>
+          <span class="text-slate-300">月卡100次/月，年卡300次/月</span>
+        </div>
+      </div>
+    </div>
+    <div class="glass rounded-xl p-6">
+      <h3 class="text-white font-bold mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        风险与阻塞
+      </h3>
+      <div class="space-y-3 text-sm">
+        <div class="flex gap-3">
+          <span class="text-emerald-400 flex-shrink-0">已控</span>
+          <span class="text-slate-300">wingo.asia 备案进行中，预计正常通过</span>
+        </div>
+        <div class="flex gap-3">
+          <span class="text-emerald-400 flex-shrink-0">已控</span>
+          <span class="text-slate-300">阿里云服务器到期前安排续费，无风险</span>
+        </div>
+        <div class="flex gap-3">
+          <span class="text-amber-400 flex-shrink-0">注意</span>
+          <span class="text-slate-300">当前仅支持数学，语文英语待开发</span>
+        </div>
+        <div class="flex gap-3">
+          <span class="text-amber-400 flex-shrink-0">注意</span>
+          <span class="text-slate-300">年卡¥299定价需上线后验证市场接受度</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 下一步行动 -->
+  <div class="glass rounded-xl p-6">
+    <h3 class="text-white font-bold mb-4 flex items-center gap-2">
+      <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+      下一步行动（恢复工作时）
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      <div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+        <p class="text-cyan-400 font-medium mb-1">优先级 1：数据库扩展</p>
+        <p class="text-slate-400">添加 children 表，reports 表扩展年级/学科字段</p>
+      </div>
+      <div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+        <p class="text-cyan-400 font-medium mb-1">优先级 2：Prompt 框架</p>
+        <p class="text-slate-400">设计通用 prompt，支持数学全年级自适应分析</p>
+      </div>
+      <div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+        <p class="text-cyan-400 font-medium mb-1">优先级 3：支付接入</p>
+        <p class="text-slate-400">微信支付 JSAPI 前端接入 + 回调处理</p>
+      </div>
+      <div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+        <p class="text-cyan-400 font-medium mb-1">优先级 4：服务器续费</p>
+        <p class="text-slate-400">阿里云 101.200.53.200 续费或降配</p>
+      </div>
+      <div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
+        <p class="text-cyan-400 font-medium mb-1">优先级 5：n8n工作流激活</p>
+        <p class="text-slate-400">Mac n8n导入JSON，填微信3个值，切换Active</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="mt-8 text-center text-xs text-slate-500">
+    <p>WinGo 学情洞察项目驾驶舱 · 02号 AI代理维护</p>
+    <p class="mt-1">数据源自 D:\02工作空间\MEMORY.md · 最后更新 2026-04-21</p>
+  </div>
+
+</div>
+
+</body>
+</html>

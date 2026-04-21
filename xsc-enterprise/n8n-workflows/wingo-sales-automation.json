@@ -1,0 +1,152 @@
+{
+  "name": "WinGo Sales Automation",
+  "nodes": [
+    {
+      "id": "7bf2cbf8-9b68-43e8-8d4a-7ab6cd46366e",
+      "name": "WinGo Events Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "wingo-events",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wingo-events",
+        "responseMode": "responseNode",
+        "options": { "retry": { "retry": true, "maxRetries": 3, "waitBetweenRetries": 2000 } }
+      }
+    },
+    {
+      "id": "cffa2b5d-069e-428e-b7c3-9f542c6b7399",
+      "name": "Immediate Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [450, 100],
+      "parameters": {
+        "options": { "retry": { "retry": true, "maxRetries": 3, "waitBetweenRetries": 2000 } },
+        "respondWith": "json",
+        "responseBody": "=OK"
+      }
+    },
+    {
+      "id": "0e12b292-681d-4717-a64e-fd05af137432",
+      "name": "Event Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 2.1,
+      "position": [450, 300],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "rules": [
+            { "value": "={{ $json.event }}", "value2": "user_registered", "operation": "equal" },
+            { "value": "={{ $json.event }}", "value2": "free_quota_exhausted", "operation": "equal" },
+            { "value": "={{ $json.event }}", "value2": "payment_success", "operation": "equal" },
+            { "value": "={{ $json.event }}", "value2": "report_generated", "operation": "equal" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "05ec6928-fdbe-4d53-b5c5-b2773c25d5f6",
+      "name": "Feishu User Registered",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [700, 50],
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.feishu.cn/open-apis/bot/v2/hook/7c7bb761-fac1-49f3-a52f-4e74d77c569d",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"msg_type\":\"text\",\"content\":{\"text\":\"🎯 新用户注册\\n\\n时间：{{ $('WinGo Events Webhook').item.json.timestamp }}\\nOpenID：{{ $('WinGo Events Webhook').item.json.openid }}\"}}",
+        "options": { "retry": { "retry": true, "maxRetries": 3, "waitBetweenRetries": 2000 } }
+      }
+    },
+    {
+      "id": "afa2c91f-5bf5-4998-92f3-4b6b632afd7f",
+      "name": "Feishu Convert Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [700, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.feishu.cn/open-apis/bot/v2/hook/7c7bb761-fac1-49f3-a52f-4e74d77c569d",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"msg_type\":\"text\",\"content\":{\"text\":\"⚠️ 免费额度用完\\n\\n时间：{{ $('WinGo Events Webhook').item.json.timestamp }}\\nOpenID：{{ $('WinGo Events Webhook').item.json.openid }}\\n该跟进了！\"}}",
+        "options": { "retry": { "retry": true, "maxRetries": 3, "waitBetweenRetries": 2000 } }
+      }
+    },
+    {
+      "id": "a6a750da-7287-45be-b95c-03c6060eaf6b",
+      "name": "Feishu Payment Success",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [700, 350],
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.feishu.cn/open-apis/bot/v2/hook/7c7bb761-fac1-49f3-a52f-4e74d77c569d",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"msg_type\":\"text\",\"content\":{\"text\":\"🎉 支付成功\\n\\n时间：{{ $('WinGo Events Webhook').item.json.timestamp }}\\nOpenID：{{ $('WinGo Events Webhook').item.json.openid }}\\n类型：{{ $('WinGo Events Webhook').item.json.orderType === 'year' ? '年卡' : '月卡' }}\\n金额：¥{{ $('WinGo Events Webhook').item.json.amount }}\"}}",
+        "options": { "retry": { "retry": true, "maxRetries": 3, "waitBetweenRetries": 2000 } }
+      }
+    },
+    {
+      "id": "c63c5374-060f-499f-ac41-a13854d2a2c4",
+      "name": "WeChat Get Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [700, 500],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wx6e1ab7925fd0ad91&secret=2c9bdecc85ba328ce5a374bcf7ffa7f5",
+        "sendBody": false,
+        "options": { "retry": { "retry": true, "maxRetries": 3, "waitBetweenRetries": 2000 } }
+      }
+    },
+    {
+      "id": "429958ad-c64d-4101-b5ed-6d4f992d5d5f",
+      "name": "WeChat Send Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [950, 500],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={{ $json.access_token }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"touser\":\"{{ $('WinGo Events Webhook').item.json.openid }}\",\"template_id\":\"wdiORv77JhSgW7Z9P9IVqppOcnYQfkGhitEnNH85jhI\",\"url\":\"https://edu.wingo.icu\",\"data\":{\"first\":{\"value\":\"学情分析报告已生成\",\"color\":\"#173177\"},\"keyword1\":{\"value\":\"{{ $('WinGo Events Webhook').item.json.subject === 'math' ? '数学学情分析' : ($('WinGo Events Webhook').item.json.subject === 'chinese' ? '语文学情分析' : '英语学情分析') }}\",\"color\":\"#333333\"},\"keyword2\":{\"value\":\"您的孩子\",\"color\":\"#333333\"},\"keyword3\":{\"value\":\"{{ $('WinGo Events Webhook').item.json.score }}分\",\"color\":\"#333333\"},\"keyword4\":{\"value\":\"{{ $('WinGo Events Webhook').item.json.accuracy }}%\",\"color\":\"#333333\"},\"keyword5\":{\"value\":\"{{ $('WinGo Events Webhook').item.json.timestamp }}\",\"color\":\"#333333\"},\"remark\":{\"value\":\"点击查看完整报告 →\",\"color\":\"#fa9d3b\"}}}",
+        "options": { "retry": { "retry": true, "maxRetries": 3, "waitBetweenRetries": 2000 } }
+      }
+    }
+  ],
+  "connections": {
+    "WinGo Events Webhook": {
+      "main": [
+        [
+          { "node": "Immediate Response", "type": "main", "index": 0 },
+          { "node": "Event Router", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Event Router": {
+      "main": [
+        [{ "node": "Feishu User Registered", "type": "main", "index": 0 }],
+        [{ "node": "Feishu Convert Alert", "type": "main", "index": 0 }],
+        [{ "node": "Feishu Payment Success", "type": "main", "index": 0 }],
+        [{ "node": "WeChat Get Token", "type": "main", "index": 0 }]
+      ]
+    },
+    "WeChat Get Token": {
+      "main": [
+        [{ "node": "WeChat Send Report", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "",
+    "timezone": "Asia/Shanghai"
+  },
+  "staticData": null,
+  "tags": []
+}
