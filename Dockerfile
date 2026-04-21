@@ -21,25 +21,25 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 
+# === 环境变量：全部在镜像中固化，服务器不再注入 ===
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL=file:./data/wingo-xsc.db
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Create data directory for SQLite
-RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
-
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-USER nextjs
-
-EXPOSE 3000
-
+ENV NEXT_PUBLIC_BASE_URL=http://101.200.53.200:3000
+ENV N8N_WEBHOOK_URL=http://172.17.0.1:5678/webhook/wingo-events
+ENV OPENMAIC_URL=http://172.17.0.1:3001
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+
+# 数据目录（用root跑，bind mount权限问题自动解决）
+RUN mkdir -p /app/data
+
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+# 用root运行，避免bind mount权限问题
+# 如需降权，在entrypoint中处理
+EXPOSE 3000
 
 CMD ["node", "server.js"]

@@ -168,7 +168,7 @@ export const dbClient = {
       const now = new Date().toISOString()
       const stmt = db.prepare('INSERT INTO users (id, openid, unionid, nickname, avatar, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
       stmt.run(id, openid, unionid || null, nickname || null, avatar || null, now, now)
-      db.prepare('INSERT INTO user_limits (user_id, free_count, member_type) VALUES (?, 3, "none")').run(id)
+      db.prepare("INSERT INTO user_limits (user_id, free_count, member_type) VALUES (?, 3, 'none')").run(id)
       // 触发营销事件：新用户注册
       emitUserRegistered(id, openid, nickname)
       return { id, openid, unionid, nickname, avatar, createdAt: now, updatedAt: now } as UserRecord
