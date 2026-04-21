@@ -14,29 +14,29 @@ const PLANS = [
   {
     type: 'single' as const,
     title: '单次解锁',
-    price: 9.8,
+    price: 9.9,
     unit: '元/次',
-    desc: '解锁一份完整学情报告',
+    desc: '解锁一份完整学情报告+专项练习',
     icon: Zap,
     color: 'blue',
     popular: false,
   },
   {
     type: 'month' as const,
-    title: '月度会员',
-    price: 29.8,
+    title: '月卡',
+    price: 39,
     unit: '元/月',
-    desc: ' unlimited 完整报告 + 专项练习',
+    desc: '30天无限次 + 微信推送 + 历史回看',
     icon: Crown,
     color: 'amber',
     popular: true,
   },
   {
     type: 'year' as const,
-    title: '年度会员',
-    price: 198,
+    title: '年卡',
+    price: 299,
     unit: '元/年',
-    desc: '全年 unlimited，日均 0.54 元',
+    desc: '全年无限次 + 成长趋势 + 年度总结',
     icon: Star,
     color: 'purple',
     popular: false,
@@ -138,7 +138,7 @@ export default function PayModal({ open, onClose, onSuccess }: PayModalProps) {
           </div>
 
           <p className="text-sm text-gray-500 mb-4">
-            新用户注册即送 <strong className="text-blue-800">3 次免费</strong> 完整报告解锁机会
+            新用户注册即送 <strong className="text-blue-800">3 次免费</strong> 完整报告体验
           </p>
 
           <div className="space-y-3 mb-6">

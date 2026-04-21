@@ -11,9 +11,9 @@ const PLANS = [
   {
     type: 'single',
     title: '单次解锁',
-    price: '9.8',
+    price: '9.9',
     unit: '元/次',
-    desc: '解锁一份完整学情报告',
+    desc: '解锁一份完整学情报告+专项练习',
     features: ['完整学情分析报告', '薄弱点诊断', '专项练习生成', '报告下载'],
     icon: Zap,
     color: 'blue',
@@ -21,22 +21,22 @@ const PLANS = [
   },
   {
     type: 'month',
-    title: '月度会员',
-    price: '29.8',
+    title: '月卡',
+    price: '39',
     unit: '元/月',
-    desc: '无限次完整报告 + 专项练习',
-    features: ['无限次完整报告', '薄弱点诊断', '专项练习生成', '报告下载', '学习档案追踪', '优先客服支持'],
+    desc: '30天无限次 + 微信推送 + 历史回看',
+    features: ['30天无限次报告', '薄弱点诊断', '专项练习生成', '报告下载', '微信推送报告', '历史回看'],
     icon: Crown,
     color: 'amber',
     popular: true,
   },
   {
     type: 'year',
-    title: '年度会员',
-    price: '198',
+    title: '年卡',
+    price: '299',
     unit: '元/年',
-    desc: '全年无限次，日均 0.54 元',
-    features: ['全年无限次报告', '薄弱点诊断', '专项练习生成', '报告下载', '学习档案追踪', '优先客服支持', '年度学习总结'],
+    desc: '全年无限次 + 成长趋势 + 年度总结',
+    features: ['全年无限次报告', '薄弱点诊断', '专项练习生成', '报告下载', '成长趋势追踪', '年度学情总结', '错题本自动归类'],
     icon: Star,
     color: 'purple',
     popular: false,
@@ -145,8 +145,8 @@ export default function LandingPage() {
 
               <FadeIn delay={200}>
                 <p className="text-lg text-blue-100 leading-relaxed max-w-lg">
-                  拍照上传作业，3 秒生成学情分析报告。精准定位知识薄弱点，
-                  自动生成专项练习，让家庭辅导不再盲目。
+                  拍照上传作业，3 秒生成学情分析报告。幼升小入学准备、小升初升学冲刺、
+                  全年级自适应评估，让每个家庭都有专属的学情管家。
                 </p>
               </FadeIn>
 
@@ -176,7 +176,11 @@ export default function LandingPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Check size={16} className="text-amber-400" />
-                    <span>无需绑定信用卡</span>
+                    <span>一个账号支持多孩</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check size={16} className="text-amber-400" />
+                    <span>幼升小/小升初/通用</span>
                   </div>
                 </div>
               </FadeIn>
@@ -315,6 +319,79 @@ export default function LandingPage() {
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-3">{item.title}</h3>
                     <p className="text-gray-600 leading-relaxed">{item.desc}</p>
+                  </div>
+                </FadeIn>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ====== 学段定位 SECTION ====== */}
+      <section className="py-20 lg:py-28">
+        <div className="max-w-6xl mx-auto px-4">
+          <FadeIn>
+            <div className="text-center mb-16">
+              <p className="text-sm font-semibold text-blue-800 uppercase tracking-wider mb-3">人群定位</p>
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+                为不同阶段的孩子量身定制
+              </h2>
+              <p className="text-gray-600 mt-4 max-w-lg mx-auto">
+                一个账号支持多个孩子档案，AI 自适应判断学段，自动生成匹配的分析报告
+              </p>
+            </div>
+          </FadeIn>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: '🎒',
+                title: '幼升小入学管家',
+                subtitle: '幼儿园大班',
+                desc: '入学准备能力评估，基础认知、逻辑思维、语言表达全方位检测，帮助家长了解孩子的入学 readiness。',
+                features: ['入学能力评估', '基础认知检测', '逻辑思维训练', '语言表达分析'],
+                color: 'green',
+              },
+              {
+                icon: '📚',
+                title: '小升初升学管家',
+                subtitle: '小学五六年级',
+                desc: '升学冲刺阶段的查漏补缺，五大模块掌握度追踪，精准定位知识薄弱点，助力小升初备考。',
+                features: ['五大模块追踪', '薄弱点精准定位', '升学冲刺规划', '历年考点分析'],
+                color: 'amber',
+              },
+              {
+                icon: '🎯',
+                title: '全年级自适应',
+                subtitle: 'K12 全学段',
+                desc: 'AI 自动判断年级和知识点深度，从幼儿园到初中全覆盖。支持多孩档案切换，一个账号管理全家学习。',
+                features: ['AI 年级自适应', '全学段覆盖', '多孩档案切换', '成长趋势追踪'],
+                color: 'blue',
+              },
+            ].map((item, i) => {
+              const colorMap: Record<string, { bg: string; border: string; badge: string }> = {
+                green: { bg: 'bg-green-50', border: 'border-green-100', badge: 'bg-green-100 text-green-700' },
+                amber: { bg: 'bg-amber-50', border: 'border-amber-100', badge: 'bg-amber-100 text-amber-700' },
+                blue: { bg: 'bg-blue-50', border: 'border-blue-100', badge: 'bg-blue-100 text-blue-700' },
+              }
+              const c = colorMap[item.color]
+              return (
+                <FadeIn key={item.title} delay={i * 150}>
+                  <div className={`rounded-2xl border ${c.border} ${c.bg} p-8 h-full flex flex-col`}>
+                    <div className="text-4xl mb-4">{item.icon}</div>
+                    <span className={`inline-block self-start px-3 py-1 rounded-full text-xs font-semibold ${c.badge} mb-3`}>
+                      {item.subtitle}
+                    </span>
+                    <h3 className="text-xl font-bold text-gray-900 mb-3">{item.title}</h3>
+                    <p className="text-gray-600 leading-relaxed mb-6 flex-1">{item.desc}</p>
+                    <ul className="space-y-2">
+                      {item.features.map((f) => (
+                        <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
+                          <Check size={14} className="text-green-500 shrink-0" />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </FadeIn>
               )
