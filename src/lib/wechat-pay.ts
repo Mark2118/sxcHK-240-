@@ -5,7 +5,8 @@
 
 import crypto from 'crypto'
 
-const MOCK_MODE = process.env.WECHAT_PAY_MOCK === 'true' || !process.env.WECHAT_MCHID
+const MOCK_MODE = process.env.WECHAT_PAY_MOCK === 'true'
+// 注意：MOCK 模式仅在开发环境显式开启时使用，生产环境必须配置真实商户参数
 
 const CONFIG = {
   appid: process.env.WECHAT_APPID || '',

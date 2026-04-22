@@ -172,18 +172,23 @@ export default function AnalyzePage() {
       })
       const data = await res.json()
       if (res.status === 401) {
-        alert('请先登录后再分析')
-        // 触发登录
-        const mockCode = 'mock_wx_code_' + Date.now()
-        const loginRes = await fetch('/xsc/api/auth/wechat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: mockCode }),
-        })
-        const loginData = await loginRes.json()
-        if (loginData.success && loginData.token) {
-          localStorage.setItem('xsc_token', loginData.token)
-          window.location.reload()
+        localStorage.removeItem('xsc_token')
+        if (process.env.NODE_ENV === 'development') {
+          // 开发环境：模拟微信登录
+          const mockCode = 'mock_wx_code_' + Date.now()
+          const loginRes = await fetch('/xsc/api/auth/wechat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: mockCode }),
+          })
+          const loginData = await loginRes.json()
+          if (loginData.success && loginData.token) {
+            localStorage.setItem('xsc_token', loginData.token)
+            window.location.reload()
+          }
+        } else {
+          // 生产环境：跳转微信 OAuth
+          window.location.href = '/xsc/api/auth/wechat?redirect=' + encodeURIComponent(window.location.pathname + window.location.search)
         }
       } else if (data.code === 'NO_QUOTA') {
         setPayModalOpen(true)

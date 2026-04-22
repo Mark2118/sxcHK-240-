@@ -81,22 +81,25 @@ export default function TrendsPage() {
           <p className="text-gray-500 mb-6">登录后查看薄弱点追踪</p>
           <button
             onClick={() => {
-              const mockCode = 'mock_wx_code_' + Date.now()
-              fetch('/xsc/api/auth/wechat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: mockCode }),
-              })
-                .then((r) => r.json())
-                .then((d) => {
-                  if (d.success && d.token) {
-                    localStorage.setItem('xsc_token', d.token)
-                    window.location.reload()
-                  }
+              if (process.env.NODE_ENV === 'development') {
+                const mockCode = 'mock_wx_code_' + Date.now()
+                fetch('/xsc/api/auth/wechat', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ code: mockCode }),
                 })
+                  .then((r) => r.json())
+                  .then((d) => {
+                    if (d.success && d.token) {
+                      localStorage.setItem('xsc_token', d.token)
+                      window.location.reload()
+                    }
+                  })
+              } else {
+                window.location.href = '/xsc/api/auth/wechat?redirect=' + encodeURIComponent(window.location.pathname)
+              }
             }}
             className="px-5 py-2.5 bg-blue-900 text-white rounded-xl text-sm font-medium"
-          >
             登录
           </button>
         </div>
