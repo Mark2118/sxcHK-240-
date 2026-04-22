@@ -28,6 +28,9 @@ ENV DATABASE_URL=file:./data/wingo-xsc.db
 ENV NEXT_PUBLIC_BASE_URL=http://101.200.53.200:3000
 ENV N8N_WEBHOOK_URL=http://172.17.0.1:5678/webhook/wingo-events
 ENV OPENMAIC_URL=http://172.17.0.1:3001
+ENV AI_BASE_URL=https://api.minimaxi.com/v1
+ENV AI_API_KEY=sk-cp-Gj_m4OGRLtUtxLH0L3VNzREUPI_MHqSANPRpUUWV5G-ZnlA4Ic_5uJ-9awjGFMIDCvmPCVfPMk-v2yoyuaksFz6LHq_rjaQvuHjFOw8bYijKgSzbIpT3Tdk
+ENV AI_MODEL=MiniMax-M2.7-highspeed
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
