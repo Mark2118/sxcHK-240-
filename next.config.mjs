@@ -5,6 +5,16 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/xsc/',
+        permanent: false,
+        basePath: false,
+      },
+    ]
+  },
 }
 
 export default nextConfig
