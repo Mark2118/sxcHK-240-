@@ -36,11 +36,11 @@ docker run -d \
 # 健康检查
 echo "[4/4] 健康检查..."
 sleep 5
-curl -s http://localhost:3000/xsc/api/health || echo "健康检查失败，请查看日志"
+curl -s http://100.106.90.55:3000/xsc/api/health || echo "健康检查失败，请查看日志"
 
 echo ""
 echo "=========================================="
 echo "部署完成!"
-echo "访问: http://localhost:3000/xsc"
+echo "访问: http://100.106.90.55:3000/xsc"
 echo "查看日志: docker logs -f wingo-xsc"
 echo "=========================================="

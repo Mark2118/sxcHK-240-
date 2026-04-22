@@ -272,7 +272,7 @@ export default function AnalyzePage() {
             )}
             <div className="hidden sm:flex items-center gap-2 text-xs text-gray-400">
               <Shield size={14} />
-              <span>edu.wingo.icu/xsc</span>
+              <span>100.106.90.55:3002/xsc</span>
             </div>
           </div>
         </div>
@@ -899,7 +899,7 @@ export default function AnalyzePage() {
             <div className="w-6 h-6 bg-blue-900 rounded-md flex items-center justify-center text-white text-xs font-bold">W</div>
             <span className="text-sm font-semibold text-gray-700">WinGo 学情洞察</span>
           </div>
-          <p className="text-xs text-gray-400">AI 驱动的家庭学情分析工具 · edu.wingo.icu/xsc</p>
+          <p className="text-xs text-gray-400">AI 驱动的家庭学情分析工具 · 100.106.90.55:3002/xsc</p>
           <p className="text-xs text-gray-400 mt-1">本工具为家庭学情分析软件，不涉及任何教育培训服务</p>
         </div>
       </footer>

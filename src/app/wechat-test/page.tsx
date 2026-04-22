@@ -28,7 +28,7 @@ export default function WechatTestPage() {
             keyword5: { value: '2026-04-21 18:00' },
             remark: { value: '点击详情查看完整报告 →' },
           },
-          url: 'https://edu.wingo.icu/xsc',
+          url: 'http://100.106.90.55:3002/xsc',
         }),
       })
 

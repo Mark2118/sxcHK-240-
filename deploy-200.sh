@@ -36,7 +36,7 @@ docker run -d \
 # 4. 健康检查
 echo "健康检查..."
 sleep 3
-HEALTH=$(curl -s http://localhost:${PORT}/xsc/api/health || echo "fail")
+HEALTH=$(curl -s http://100.106.90.55:${PORT}/xsc/api/health || echo "fail")
 echo "Health: $HEALTH"
 
 echo "=== 部署完成 ==="
