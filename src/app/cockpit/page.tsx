@@ -42,9 +42,9 @@ const TEAM = [
       { name: 'B端数据库表', done: true, total: true },
       { name: 'B端 API', done: true, total: true },
       { name: '管理后台页面', done: true, total: true },
-      { name: '批量分析核心', done: false, total: true },
-      { name: '班级看板', done: false, total: true },
-      { name: 'OpenMAIC 咨询', done: false, total: true },
+      { name: '批量分析核心', done: true, total: true },
+      { name: '班级看板', done: true, total: true },
+      { name: 'OpenMAIC 咨询', done: true, total: true },
     ],
     status: 'developing' as const,
   },
@@ -67,7 +67,8 @@ const MILESTONES = [
   { date: '2026-04-20', title: 'v1.0.8 拍照智能批改', done: true },
   { date: '2026-04-21', title: 'PRD v6 OPC生态版定稿', done: true },
   { date: '2026-04-22', title: '极简落地页 + B端框架', done: true },
-  { date: '2026-04-22', title: 'MVP Mac 部署内测', done: false, current: true },
+  { date: '2026-04-22', title: 'MVP Mac 部署内测', done: true, current: false },
+  { date: '2026-04-22', title: 'B端深度自查+批量分析上线', done: true, current: false },
   { date: '2026-04-23', title: 'n8n 工作流修复 + Dify 客服', done: false },
   { date: '2026-04-24', title: '微信登录 + 支付完整测试', done: false },
   { date: '2026-04-25', title: '服务器生产部署', done: false },
@@ -156,7 +157,7 @@ export default function CockpitPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: 'C端 MVP', value: '75%', sub: '6/8 任务完成', color: 'text-blue-400', bg: 'bg-blue-500/10' },
-            { label: 'B端 v0.1', value: '50%', sub: '3/6 任务完成', color: 'text-purple-400', bg: 'bg-purple-500/10' },
+            { label: 'B端 v0.1', value: '100%', sub: '6/6 任务完成', color: 'text-purple-400', bg: 'bg-purple-500/10' },
             { label: '代码审查', value: '75%', sub: '3/4 完成', color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
             { label: '服务器', value: health.status === 'healthy' ? '正常' : '异常', sub: '阿里云 200 / 香港 240', color: health.status === 'healthy' ? 'text-emerald-400' : 'text-red-400', bg: health.status === 'healthy' ? 'bg-emerald-500/10' : 'bg-red-500/10' },
           ].map(card => (
@@ -330,7 +331,6 @@ export default function CockpitPage() {
                 当前阻塞
               </h3>
               <ul className="space-y-2 text-xs text-slate-300">
-                <li>• 01 号 Mac 部署（npm 未安装）</li>
                 <li>• n8n 工作流报错待修复</li>
                 <li>• wingo.asia 备案中</li>
               </ul>
