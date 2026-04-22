@@ -20,7 +20,6 @@ export async function POST(req: NextRequest) {
       formulas: result.formulas,
     })
   } catch (error: any) {
-    console.error('OCR 错误:', error)
     return NextResponse.json({ error: error.message || '识别失败' }, { status: 500 })
   }
 }

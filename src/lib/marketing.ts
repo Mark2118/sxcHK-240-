@@ -82,7 +82,6 @@ async function sendToN8N(payload: MarketingPayload) {
 
     if (!res.ok) {
       n8nConsecutiveFailures++
-      console.warn(`[Marketing] n8n webhook 返回 ${res.status}: ${await res.text()}`)
       if (n8nConsecutiveFailures >= MAX_N8N_FAILURES) {
         await alertFeishu(`🚨 n8n 挂了！连续 ${MAX_N8N_FAILURES} 次推送失败，请检查 200 服务器上的 n8n 容器。时间：${new Date().toLocaleString('zh-CN')}`)
         n8nConsecutiveFailures = 0
@@ -94,9 +93,7 @@ async function sendToN8N(payload: MarketingPayload) {
     clearTimeout(timeout)
     n8nConsecutiveFailures++
     if (err.name === 'AbortError') {
-      console.warn('[Marketing] n8n webhook 超时')
     } else {
-      console.warn('[Marketing] n8n webhook 失败:', err.message)
     }
     if (n8nConsecutiveFailures >= MAX_N8N_FAILURES) {
       await alertFeishu(`🚨 n8n 挂了！连续 ${MAX_N8N_FAILURES} 次推送失败，请检查 200 服务器上的 n8n 容器。时间：${new Date().toLocaleString('zh-CN')}`)

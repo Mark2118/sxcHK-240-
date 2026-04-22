@@ -200,19 +200,15 @@ export async function generateExercises(
     if (res.ok) {
       const data = await res.json()
       text = data.content || data.result || data.text || ''
-      console.log('WinGo 学情引擎练习生成成功')
     } else {
       throw new Error(`WinGo 学情引擎 HTTP ${res.status}`)
     }
   } catch (e: any) {
-    console.warn('WinGo 学情引擎不可用，降级到直连 AI:', e.message)
 
     // 第二优先级：直连 MiniMax
     try {
       text = await callLLM(prompt)
-      console.log('直连 AI 练习生成成功')
     } catch (e2: any) {
-      console.error('直连 AI 也失败:', e2.message)
       return {
         title: '练习生成暂不可用',
         description: 'AI 引擎暂时无法连接，已生成基础巩固题',

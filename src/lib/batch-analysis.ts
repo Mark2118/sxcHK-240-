@@ -90,7 +90,6 @@ export async function analyzeSingleImage(
       rawText: analysisText,
     }
   } catch (e: any) {
-    console.error('单张分析失败:', e.message)
     return null
   }
 }

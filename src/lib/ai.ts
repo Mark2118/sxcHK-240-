@@ -346,7 +346,6 @@ export async function analyzeHomework(
   }
 
   const questionCount = extractQuestionCount(text)
-  console.log(`[AI] 检测到 ${questionCount} 道题目`)
   if (questionCount < 1 || questionCount > 30) {
     throw new Error(`识别结果异常，检测到 ${questionCount} 道题目，请检查图片是否完整`)
   }

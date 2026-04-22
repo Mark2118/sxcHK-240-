@@ -157,7 +157,6 @@ export async function GET(req: NextRequest) {
       freeCount: permission.type === 'free' ? permission.freeCount - 1 : permission.freeCount,
     })
   } catch (error: any) {
-    console.error('报告查询错误:', error)
     return NextResponse.json(
       { error: error.message || '查询失败' },
       { status: 500 }

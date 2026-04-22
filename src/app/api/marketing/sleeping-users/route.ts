@@ -34,7 +34,6 @@ export async function GET(req: NextRequest) {
       })),
     })
   } catch (error: any) {
-    console.error('查询沉睡用户失败:', error)
     return NextResponse.json({ error: error.message || '查询失败' }, { status: 500 })
   }
 }
