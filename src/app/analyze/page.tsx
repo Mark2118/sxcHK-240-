@@ -120,20 +120,20 @@ export default function AnalyzePage() {
           setOcrText(data.text)
           setOcrResult(true)
         } else {
-          alert('图片识别失败: ' + (data.error || '未知错误'))
+          setError('图片识别失败: ' + (data.error || '未知错误'))
         }
         setOcrLoading(false)
       }
       reader.readAsDataURL(file)
     } catch (e) {
-      alert('上传失败')
+      setError('上传失败')
       setOcrLoading(false)
     }
   }, [])
 
   const handleCorrect = useCallback(async () => {
     if (!uploadedImage) {
-      alert('请先上传作业图片')
+      setError('请先上传作业图片')
       fileInputRef.current?.click()
       return
     }
@@ -248,6 +248,18 @@ export default function AnalyzePage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* 错误提示 */}
+      {error && (
+        <div className="bg-red-50 border-b border-red-100 px-4 py-3">
+          <div className="max-w-5xl mx-auto flex items-center gap-2 text-red-600 text-sm">
+            <AlertCircle size={16} />
+            <span>{error}</span>
+            <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600 text-xs">
+              关闭
+            </button>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -964,10 +976,10 @@ export default function AnalyzePage() {
               } as AnalysisResult)
               setActiveTab('overview')
             } else {
-              alert(data.error || '加载报告失败')
+              setError(data.error || '加载报告失败')
             }
           } catch (e) {
-            alert('加载报告失败')
+            setError('加载报告失败')
           }
         }}
       />

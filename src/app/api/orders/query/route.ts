@@ -47,7 +47,6 @@ export async function GET(req: NextRequest) {
           order.wxOrderId = wxStatus.transactionId
         }
       } catch (e) {
-        console.error('查询微信订单失败:', e)
       }
     }
 
@@ -63,7 +62,6 @@ export async function GET(req: NextRequest) {
       },
     })
   } catch (error: any) {
-    console.error('查询订单错误:', error)
     return NextResponse.json({ error: error.message || '查询失败' }, { status: 500 })
   }
 }

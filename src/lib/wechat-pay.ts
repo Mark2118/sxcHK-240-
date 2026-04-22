@@ -78,7 +78,6 @@ export async function createJsapiOrder(params: {
   notifyUrl?: string
 }): Promise<{ prepayId: string }> {
   if (MOCK_MODE) {
-    console.log('[MOCK] 创建微信支付订单:', params)
     // Mock 模式下返回模拟 prepay_id
     return { prepayId: `mock_${params.outTradeNo}` }
   }
@@ -115,7 +114,6 @@ export async function createJsapiOrder(params: {
   const data = await res.json()
 
   if (!res.ok) {
-    console.error('微信统一下单失败:', data)
     throw new Error(data.message || '创建支付订单失败')
   }
 
@@ -172,7 +170,6 @@ export async function queryOrder(outTradeNo: string): Promise<{ status: string; 
   const data = await res.json()
 
   if (!res.ok) {
-    console.error('查询订单失败:', data)
     throw new Error(data.message || '查询订单失败')
   }
 

@@ -13,7 +13,6 @@ export async function POST(req: NextRequest) {
     const result = await sendTemplateMessage(openid, data, url)
     return NextResponse.json({ success: true, result })
   } catch (error: any) {
-    console.error('发送模板消息失败:', error)
     return NextResponse.json({ error: error.message || '发送失败' }, { status: 500 })
   }
 }

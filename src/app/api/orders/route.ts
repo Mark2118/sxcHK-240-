@@ -57,7 +57,6 @@ export async function POST(req: NextRequest) {
       })
       payParams = buildPayParams(prepayId)
     } catch (payErr: any) {
-      console.error('创建支付订单失败:', payErr)
       if (!MOCK_MODE) {
         return NextResponse.json({ error: '创建支付订单失败', detail: payErr.message }, { status: 500 })
       }
@@ -82,7 +81,6 @@ export async function POST(req: NextRequest) {
       mock: MOCK_MODE,
     })
   } catch (error: any) {
-    console.error('创建订单错误:', error)
     return NextResponse.json({ error: error.message || '创建订单失败' }, { status: 500 })
   }
 }
@@ -106,7 +104,6 @@ export async function GET(req: NextRequest) {
     const orders = dbClient.orders.findByUserId(payload.userId as string)
     return NextResponse.json({ success: true, orders })
   } catch (error: any) {
-    console.error('查询订单错误:', error)
     return NextResponse.json({ error: error.message || '查询失败' }, { status: 500 })
   }
 }

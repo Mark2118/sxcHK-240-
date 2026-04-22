@@ -11,7 +11,6 @@ export async function GET(req: NextRequest) {
     const batches = dbClient.batchAnalyses.findByInstitution(institution.id)
     return NextResponse.json({ success: true, data: batches })
   } catch (e: any) {
-    console.error('批量分析查询错误:', e)
     return NextResponse.json({ success: false, error: 'INTERNAL_ERROR', message: e.message }, { status: 500 })
   }
 }
@@ -73,13 +72,11 @@ export async function POST(req: NextRequest) {
       },
     })
   } catch (e: any) {
-    console.error('批量分析错误:', e)
     // 如果已创建 batch，标记为失败
     if (batchId) {
       try {
         dbClient.batchAnalyses.updateStatus(batchId, 'failed')
       } catch (updateErr) {
-        console.error('更新 batch 失败状态出错:', updateErr)
       }
     }
     return NextResponse.json({ success: false, error: 'INTERNAL_ERROR', message: e.message }, { status: 500 })

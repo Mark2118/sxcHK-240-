@@ -59,7 +59,6 @@ async function processJob(id: string) {
       try {
         exercises = await generateExercises(report.weakPoints, report.moduleScores, job.subject)
       } catch (e) {
-        console.error('练习生成失败:', e)
       }
     }
 
