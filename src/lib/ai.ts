@@ -4,6 +4,8 @@
  * 定位：家庭学情分析工具，非教育培训
  */
 
+import { ENGLISH_PROMPT_TEMPLATE } from './english-skill'
+
 const AI_PROVIDER = (process.env.AI_PROVIDER || 'minimax').toLowerCase()
 const AI_API_KEY = process.env.AI_API_KEY || ''
 const AI_BASE_URL = process.env.AI_BASE_URL || ''
@@ -114,20 +116,7 @@ const SUBJECT_PROMPTS: Record<string, string> = {
   "examStrategy": "阶段性学习建议"
 }`,
 
-  english: `你是一位教育数据分析模型，基于小升初英语知识体系，对以下学生作业进行客观分析。
-
-请按以下 JSON 格式返回，不要输出其他内容：
-{
-  "score": <总分>,
-  "totalQuestions": <总题数>,
-  "correct": <对题数>,
-  "wrong": <错题数>,
-  "questions": [{"no":1,"content":"题目","studentAnswer":"学生答案","correctAnswer":"正确答案","isCorrect":true,"knowledgePoint":"知识点","analysis":"解析"}],
-  "weakPoints": ["提升方向"],
-  "suggestions": ["家庭学习建议"],
-  "recommendedExercises": [{"type":"题型","desc":"描述","difficulty":"基础"}],
-  "examStrategy": "阶段性学习建议"
-}`,
+  english: ENGLISH_PROMPT_TEMPLATE,
 }
 
 async function callLLM(prompt: string): Promise<string> {
@@ -319,6 +308,17 @@ export async function analyzeHomework(
   text: string,
   subject: string = 'math'
 ): Promise<CheckReport> {
+  // Phase 1: 输入异常检查
+  if (text.includes('[低置信度]')) {
+    throw new Error('识别质量不足，包含低置信度内容，建议重新拍照或人工确认')
+  }
+  if (!text || text.trim().length < 10) {
+    throw new Error('作业内容过短，无法进行分析')
+  }
+  if (text.split('\n').length < 2 && text.length < 30) {
+    throw new Error('作业内容不完整，请检查识别结果')
+  }
+
   const promptTemplate = SUBJECT_PROMPTS[subject] || SUBJECT_PROMPTS.math
   const fullPrompt = `${promptTemplate}\n\n【作业内容】\n${text}\n\n要求：\n1. 必须严格按上述 JSON 格式返回\n2. 只返回 JSON，不要任何解释\n3. 确保 JSON 完整、格式正确\n4. 如果题目很多，优先分析前10题`
 

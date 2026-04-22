@@ -73,6 +73,7 @@ export interface OcrResult {
   layouts: OcrLayout[]
   alteredRegions: string[] // 涂改区域文本
   imageDirection: number
+  lowConfidenceCount: number // 低置信度行数
 }
 
 export async function ocrRecognize(imageBase64: string): Promise<string> {
@@ -169,13 +170,22 @@ export async function ocrRecognizeAdvanced(imageBase64: string): Promise<OcrResu
     .filter((l) => l.text.includes('☰'))
     .map((l) => l.text)
 
+  // 置信度统计
+  let lowConfidenceCount = 0
+  lines.forEach((l) => {
+    if (l.confidence && l.confidence.average < 0.8) {
+      lowConfidenceCount++
+    }
+  })
+
   // 拼接文本
   const textParts: string[] = []
 
   // 按版面模块分组输出
   lines.forEach((l) => {
     const prefix = l.type === 'handwriting' ? '[手写] ' : ''
-    textParts.push(prefix + l.text)
+    const lowConf = l.confidence && l.confidence.average < 0.8 ? '[低置信度] ' : ''
+    textParts.push(prefix + lowConf + l.text)
   })
 
   if (formulas.length > 0) {
@@ -212,5 +222,6 @@ export async function ocrRecognizeAdvanced(imageBase64: string): Promise<OcrResu
     layouts,
     alteredRegions,
     imageDirection,
+    lowConfidenceCount,
   }
 }

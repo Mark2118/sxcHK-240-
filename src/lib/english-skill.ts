@@ -144,7 +144,7 @@ export const ENGLISH_CONTENT_SKILL = {
     '一般现在时': '初中：一般现在时深化 + 频率副词精准使用',
     '一般过去时': '初中：过去时 + 现在完成时对比',
     '一般将来时': '初中：will vs be going to 场景辨析',
-    '现在进行时': '初中：进行时表将来（I'm coming）',
+    '现在进行时': '初中：进行时表将来（I\'m coming）',
     'There be': '初中：There be + have/has 区别',
     '形容词比较级': '初中：比较级 + much/even/far 修饰',
     '名词单复数': '初中：可数/不可数 + 量词表达',
