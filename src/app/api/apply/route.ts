@@ -40,7 +40,6 @@ export async function POST(req: NextRequest) {
       message: '申请已提交，请扫描下方二维码支付 ¥500 押金锁定名额',
     })
   } catch (error: any) {
-    console.error('申请提交错误:', error)
     return NextResponse.json(
       { error: error.message || '提交失败，请稍后重试' },
       { status: 500 }

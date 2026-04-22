@@ -60,7 +60,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setToken(null)
       }
     } catch (e) {
-      console.error('获取用户信息失败:', e)
     } finally {
       setLoading(false)
     }

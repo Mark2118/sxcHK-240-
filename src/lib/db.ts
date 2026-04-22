@@ -160,7 +160,6 @@ function addColumnIfMissing(table: string, column: string, definition: string) {
       } catch (alterErr: any) {
         // 忽略并发导致的 duplicate column 错误
         if (!alterErr.message?.includes('duplicate column name')) {
-          console.warn(`[DB] 添加列 ${column} 失败:`, alterErr.message)
         }
       }
     }

@@ -82,7 +82,6 @@ export async function GET(req: NextRequest) {
     return response
 
   } catch (error) {
-    console.error('微信登录错误:', error)
     return NextResponse.json({ error: '登录处理失败' }, { status: 500 })
   }
 }
@@ -106,7 +105,6 @@ export async function POST(req: NextRequest) {
       user: { id: user.id, openid: user.openid, nickname: '测试用户', avatar: 'https://via.placeholder.com/100' }
     })
   } catch (error: any) {
-    console.error('Mock 登录错误:', error)
     return NextResponse.json({ error: '登录处理失败' }, { status: 500 })
   }
 }

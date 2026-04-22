@@ -18,7 +18,6 @@ export async function GET(req: NextRequest) {
     const students = dbClient.students.findByInstitution(institution.id)
     return NextResponse.json({ success: true, data: students })
   } catch (e: any) {
-    console.error('学员查询错误:', e)
     return NextResponse.json({ success: false, error: 'INTERNAL_ERROR', message: e.message }, { status: 500 })
   }
 }

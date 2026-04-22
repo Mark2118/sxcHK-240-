@@ -13,7 +13,6 @@ export async function POST(req: NextRequest) {
     // Mock 模式下直接返回成功
     if (MOCK_MODE) {
       const body = await req.json().catch(() => ({}))
-      console.log('[MOCK] 收到支付回调:', body)
       // Mock 模式下也尝试处理
       if (body.orderId) {
         await handlePaymentSuccess(body.orderId, `mock_tx_${body.orderId}`)
@@ -45,7 +44,6 @@ export async function POST(req: NextRequest) {
     // 必须返回 SUCCESS，否则微信会重复通知
     return NextResponse.json({ code: 'SUCCESS', message: 'OK' })
   } catch (error: any) {
-    console.error('支付回调处理错误:', error)
     return NextResponse.json({ code: 'FAIL', message: error.message }, { status: 500 })
   }
 }
@@ -84,5 +82,4 @@ async function handlePaymentSuccess(orderId: string, transactionId: string) {
     emitPaymentSuccess(userId, user.openid, type as 'month' | 'year', order.amount)
   }
 
-  console.log(`订单 ${orderId} 支付成功，用户 ${userId} 已开通 ${type}`)
 }

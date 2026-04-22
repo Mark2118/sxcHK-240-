@@ -115,7 +115,6 @@ export async function GET(req: NextRequest) {
       },
     })
   } catch (error: any) {
-    console.error('趋势查询错误:', error)
     return NextResponse.json({ error: error.message || '查询失败' }, { status: 500 })
   }
 }

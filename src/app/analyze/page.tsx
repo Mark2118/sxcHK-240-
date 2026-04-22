@@ -120,20 +120,20 @@ export default function AnalyzePage() {
           setOcrText(data.text)
           setOcrResult(true)
         } else {
-          alert('图片识别失败: ' + (data.error || '未知错误'))
+          setError('图片识别失败: ' + (data.error || '未知错误'))
         }
         setOcrLoading(false)
       }
       reader.readAsDataURL(file)
     } catch (e) {
-      alert('上传失败')
+      setError('上传失败')
       setOcrLoading(false)
     }
   }, [])
 
   const handleCorrect = useCallback(async () => {
     if (!uploadedImage) {
-      alert('请先上传作业图片')
+      setError('请先上传作业图片')
       fileInputRef.current?.click()
       return
     }
@@ -171,8 +171,34 @@ export default function AnalyzePage() {
         body: JSON.stringify({ text, subject, generateExerciseSet: true, ocrText }),
       })
       const data = await res.json()
-      setResult(data)
-      setActiveTab('overview')
+      if (res.status === 401) {
+        localStorage.removeItem('xsc_token')
+        if (process.env.NODE_ENV === 'development') {
+          // 开发环境：模拟微信登录
+          const mockCode = 'mock_wx_code_' + Date.now()
+          const loginRes = await fetch('/xsc/api/auth/wechat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: mockCode }),
+          })
+          const loginData = await loginRes.json()
+          if (loginData.success && loginData.token) {
+            localStorage.setItem('xsc_token', loginData.token)
+            window.location.reload()
+          }
+        } else {
+          // 生产环境：跳转微信 OAuth
+          window.location.href = '/xsc/api/auth/wechat?redirect=' + encodeURIComponent(window.location.pathname + window.location.search)
+        }
+      } else if (data.code === 'NO_QUOTA') {
+        setPayModalOpen(true)
+        setResult({ success: false, error: data.error || '免费次数已用完' })
+      } else if (!data.success) {
+        setResult({ success: false, error: data.error || '分析失败，请稍后重试' })
+      } else {
+        setResult(data)
+        setActiveTab('overview')
+      }
     } catch (e) {
       setResult({ success: false, error: '网络错误，请重试' })
     } finally {
@@ -222,6 +248,18 @@ export default function AnalyzePage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* 错误提示 */}
+      {error && (
+        <div className="bg-red-50 border-b border-red-100 px-4 py-3">
+          <div className="max-w-5xl mx-auto flex items-center gap-2 text-red-600 text-sm">
+            <AlertCircle size={16} />
+            <span>{error}</span>
+            <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600 text-xs">
+              关闭
+            </button>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -688,27 +726,27 @@ export default function AnalyzePage() {
                       <h3 className="font-semibold text-amber-900">今晚行动清单</h3>
                     </div>
                     <div className="space-y-2.5">
-                      {result.report!.weakPoints.map((wp, i) => (
+                      {(result.report?.weakPoints || []).map((wp, i) => (
                         <div key={`wp-${i}`} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-amber-100">
                           <div className="w-6 h-6 bg-amber-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">{i + 1}</div>
                           <div className="text-sm text-gray-800">重点巩固：<span className="font-medium">{wp}</span></div>
                         </div>
                       ))}
-                      {result.report!.questions.filter((q) => !q.isCorrect).slice(0, 3).map((q, i) => (
+                      {(result.report?.questions || []).filter((q) => !q.isCorrect).slice(0, 3).map((q, i) => (
                         <div key={`wq-${i}`} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-amber-100">
-                          <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">{(result.report!.weakPoints.length || 0) + i + 1}</div>
+                          <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">{((result.report?.weakPoints || []).length) + i + 1}</div>
                           <div className="text-sm text-gray-800">重做第{q.no}题：<span className="font-medium">{q.knowledgePoint || '相关知识点'}</span></div>
                         </div>
                       ))}
-                      {result.report!.suggestions.slice(0, 2).map((sg, i) => (
+                      {(result.report?.suggestions || []).slice(0, 2).map((sg, i) => (
                         <div key={`sg-${i}`} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-amber-100">
-                          <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">{(result.report!.weakPoints.length || 0) + result.report!.questions.filter((q) => !q.isCorrect).slice(0, 3).length + i + 1}</div>
+                          <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">{((result.report?.weakPoints || []).length) + ((result.report?.questions || []).filter((q) => !q.isCorrect).slice(0, 3).length) + i + 1}</div>
                           <div className="text-sm text-gray-800">{sg}</div>
                         </div>
                       ))}
                       <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-amber-100">
                         <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">
-                          {(result.report!.weakPoints.length || 0) + result.report!.questions.filter((q) => !q.isCorrect).slice(0, 3).length + result.report!.suggestions.slice(0, 2).length + 1}
+                          {((result.report?.weakPoints || []).length) + ((result.report?.questions || []).filter((q) => !q.isCorrect).slice(0, 3).length) + ((result.report?.suggestions || []).slice(0, 2).length) + 1}
                         </div>
                         <div className="text-sm text-gray-800">建议 2 周后再次分析，观察薄弱点改善情况</div>
                       </div>
@@ -938,10 +976,10 @@ export default function AnalyzePage() {
               } as AnalysisResult)
               setActiveTab('overview')
             } else {
-              alert(data.error || '加载报告失败')
+              setError(data.error || '加载报告失败')
             }
           } catch (e) {
-            alert('加载报告失败')
+            setError('加载报告失败')
           }
         }}
       />

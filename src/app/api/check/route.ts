@@ -56,9 +56,7 @@ export async function POST(req: NextRequest) {
     // 任务 3: 题库匹配
     const paperMatch = matchPaper(text)
     if (!paperMatch.matched) {
-      console.warn(`[题库] 匹配度低 (${paperMatch.confidence})，未识别为已知试卷`)
     } else {
-      console.log(`[题库] 匹配成功: ${paperMatch.paperName} (置信度 ${paperMatch.confidence})`)
     }
 
     // 1. AI 学情分析
@@ -79,7 +77,6 @@ export async function POST(req: NextRequest) {
           sourceDifficulty // 任务2: 原始试卷难度锚定
         )
       } catch (e) {
-        console.error('练习生成失败:', e)
       }
     }
 
@@ -122,7 +119,6 @@ export async function POST(req: NextRequest) {
         )
       }
     } catch (dbErr) {
-      console.error('数据库保存失败:', dbErr)
     }
 
     return NextResponse.json({
@@ -135,7 +131,6 @@ export async function POST(req: NextRequest) {
       freeCount: Math.max(0, (limitCheck.freeCount ?? 0) - (limitCheck.type === 'free' ? 1 : 0)),
     })
   } catch (error: any) {
-    console.error('学情分析错误:', error)
     const msg = error.message || '分析失败，请稍后重试'
     // 业务校验错误返回 400，系统错误返回 500
     const status = msg.includes('识别结果异常') || msg.includes('作业内容') ? 400 : 500

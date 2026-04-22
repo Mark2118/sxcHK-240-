@@ -11,7 +11,6 @@ export async function GET(req: NextRequest) {
     const config = await buildJssdkConfig(url)
     return NextResponse.json(config)
   } catch (error: any) {
-    console.error('获取 JS-SDK 配置失败:', error)
     return NextResponse.json({ error: error.message || '获取配置失败' }, { status: 500 })
   }
 }

@@ -46,7 +46,6 @@ export async function POST(req: NextRequest) {
     // 1. 并行：试卷切题（同步）+ 提交批改任务（异步）
     const [paperCut, taskId] = await Promise.all([
       cutPaper(base64Data).catch((e) => {
-        console.warn('切题识别失败，降级:', e.message)
         return null
       }),
       submitCorrectTask(base64Data),
@@ -113,7 +112,6 @@ export async function POST(req: NextRequest) {
           analysisText // Phase 2.1: 原始文本用于题型锚定
         )
       } catch (e) {
-        console.error('练习生成失败:', e)
       }
     }
 
@@ -156,7 +154,6 @@ export async function POST(req: NextRequest) {
         )
       }
     } catch (dbErr) {
-      console.error('数据库保存失败:', dbErr)
     }
 
     return NextResponse.json({
@@ -171,7 +168,6 @@ export async function POST(req: NextRequest) {
       crossValidationWarning, // Phase 2.3: 交叉验证警告
     })
   } catch (error: any) {
-    console.error('智能批改错误:', error)
     return NextResponse.json(
       { error: error.message || '批改失败，请稍后重试' },
       { status: 500 }
