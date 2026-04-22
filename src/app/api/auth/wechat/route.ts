@@ -4,7 +4,7 @@ import { createToken } from '@/lib/auth'
 
 const APP_ID = process.env.WECHAT_APP_ID
 const APP_SECRET = process.env.WECHAT_APP_SECRET
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://100.106.90.55:3002'
 
 // 开发模式：无微信配置时启用 mock 登录
 const isMock = !APP_ID || !APP_SECRET
@@ -92,7 +92,23 @@ export async function GET(req: NextRequest) {
  * Mock 登录（开发测试用，保留兼容）
  */
 export async function POST(req: NextRequest) {
-  return handleMockLogin()
+  try {
+    const mockOpenid = 'mock_' + Date.now()
+    let user = dbClient.users.findByOpenid(mockOpenid)
+    if (!user) {
+      user = dbClient.users.create(mockOpenid, undefined, '测试用户', 'https://via.placeholder.com/100')
+    }
+
+    const token = await createToken({ userId: user.id, openid: user.openid })
+    return NextResponse.json({
+      success: true,
+      token,
+      user: { id: user.id, openid: user.openid, nickname: '测试用户', avatar: 'https://via.placeholder.com/100' }
+    })
+  } catch (error: any) {
+    console.error('Mock 登录错误:', error)
+    return NextResponse.json({ error: '登录处理失败' }, { status: 500 })
+  }
 }
 
 async function handleMockLogin() {
