@@ -131,13 +131,14 @@ export async function POST(req: NextRequest) {
       html,
       exercises,
       reportId,
+      paperMatch,
       freeCount: Math.max(0, (limitCheck.freeCount ?? 0) - (limitCheck.type === 'free' ? 1 : 0)),
     })
   } catch (error: any) {
     console.error('学情分析错误:', error)
-    return NextResponse.json(
-      { error: error.message || '分析失败，请稍后重试' },
-      { status: 500 }
-    )
+    const msg = error.message || '分析失败，请稍后重试'
+    // 业务校验错误返回 400，系统错误返回 500
+    const status = msg.includes('识别结果异常') || msg.includes('作业内容') ? 400 : 500
+    return NextResponse.json({ error: msg }, { status })
   }
 }
