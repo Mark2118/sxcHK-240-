@@ -1,0 +1,149 @@
+```mermaid
+%% WinGo 学情管家 -- 系统架构图 v6.0
+%% 支持在 GitHub / Notion / 飞书文档 / Markdown 中渲染
+
+graph TB
+    subgraph USER["[用户层]"]
+        U1[C端家长<br/>拍照上传/看报告]
+        U2[B端机构<br/>幼儿园/托管/培训]
+        U3[私立小学/国际小学<br/>班级看板]
+        U4[运营人员<br/>1人运营1000+用户]
+        U5[AI Agent节点<br/>01/02/04]
+        U6[指挥官<br/>决策/商务]
+    end
+
+    subgraph ENTRY["[入口层]"]
+        E1[微信公众号<br/>扫码登录/模板消息]
+        E2[落地页<br/>wingo.asia]
+        E3[微信小程序<br/>Phase 4]
+        E4[B端管理后台<br/>独立前端]
+        E5[OpenMAIC演示页<br/>自动演示]
+        E6[API接口<br/>B端集成]
+    end
+
+    subgraph CORE["[核心业务层 -- XSC Next.js 15]"]
+        C_FRONT1[C端前端<br/>落地页/分析页]
+        C_FRONT2[C端前端<br/>报告页/趋势页]
+        C_API1[/api/auth<br/>微信登录/]
+        C_API2[/api/check<br/>拍照分析/]
+        C_API3[/api/report<br/>报告查询/]
+        C_API4[/api/trends<br/>学情趋势/]
+        C_API5[/api/pay<br/>微信支付/]
+        C_API6[/api/wechat<br/>模板推送/]
+        B_API1[/api/b/inst<br/>机构管理/]
+        B_API2[/api/b/batch<br/>批量分析/]
+        B_API3[/api/b/dash<br/>班级看板/]
+    end
+
+    subgraph AI["[AI 引擎层]"]
+        AI1[OCR引擎<br/>PaddleOCR + 百度OCR]
+        AI2[AI分析引擎<br/>MiniMax / DeepSeek]
+        AI3[Prompt引擎<br/>自适应年级/学科]
+        AI4[试卷索引<br/>题库匹配]
+        AI5[错题本生成<br/>薄弱点追踪]
+        AI6[空白卷还原<br/>笔迹擦除 年卡]
+    end
+
+    subgraph DATA["[数据层]"]
+        D1[(SQLite<br/>开发/初期)]
+        D2[(PostgreSQL<br/>生产/后期)]
+        D3[(Redis<br/>缓存/队列)]
+    end
+
+    subgraph AUTO["[自动化引擎 -- n8n]"]
+        N1[注册欢迎<br/>报告推送]
+        N2[付费转化<br/>续费提醒]
+        N3[月度总结<br/>沉默唤醒]
+        N4[B端线索<br/>跟进]
+    end
+
+    subgraph SERVICE["[客服与咨询]"]
+        S1[Dify智能客服<br/>80% FAQ自动]
+        S2[OpenMAIC<br/>深度咨询/B端销售]
+    end
+
+    subgraph INFRA["[基础设施层]"]
+        I1[阿里云200<br/>2核4G 大陆生产]
+        I2[阿里云095<br/>2核2G 备案实例]
+        I3[香港240<br/>高配 海外生产]
+        I4[Mac55<br/>Tailscale 测试站]
+        I5[微信生态<br/>登录/支付/模板消息]
+        I6[Tailscale<br/>内网穿透]
+        I7[systemd<br/>服务管理]
+        I8[Docker<br/>n8n + Dify]
+        I9[Nginx<br/>反向代理]
+        I10[SSL证书<br/>zjcz.top]
+    end
+
+    %% 用户 -> 入口
+    U1 --> E1
+    U1 --> E2
+    U2 --> E4
+    U3 --> E4
+    U4 --> E2
+    U5 --> E2
+    U6 --> E5
+
+    %% 入口 -> 核心
+    E1 --> C_API1
+    E2 --> C_FRONT1
+    E4 --> B_API1
+    E5 --> S2
+    E6 --> B_API2
+
+    %% 核心 -> AI
+    C_API2 --> AI1
+    C_API2 --> AI2
+    C_API2 --> AI3
+    C_API3 --> AI4
+    C_API3 --> AI5
+    C_API3 --> AI6
+
+    %% 核心 -> 数据
+    C_API1 --> D1
+    C_API2 --> D1
+    C_API3 --> D1
+    B_API1 --> D1
+    B_API2 --> D1
+
+    %% 核心 <-> n8n
+    C_API2 -.->|webhook| N1
+    C_API5 -.->|webhook| N2
+    C_API6 -.->|webhook| N3
+    B_API1 -.->|webhook| N4
+    N1 -->|模板消息| E1
+    N2 -->|模板消息| E1
+    N3 -->|模板消息| E1
+
+    %% 核心 -> 客服/咨询
+    C_API3 --> S1
+    C_API4 --> S2
+    B_API3 --> S2
+
+    %% 数据 -> 基础设施
+    D1 --> I1
+    D2 --> I3
+    I7 --> I1
+    I8 --> I3
+    I9 --> I1
+    I10 --> I1
+
+    %% 样式
+    classDef user fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef entry fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef core fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    classDef ai fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef data fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef auto fill:#e0f7fa,stroke:#0097a7,stroke-width:2px
+    classDef service fill:#fff8e1,stroke:#fbc02d,stroke-width:2px
+    classDef infra fill:#eceff1,stroke:#546e7a,stroke-width:2px
+
+    class U1,U2,U3,U4,U5,U6 user
+    class E1,E2,E3,E4,E5,E6 entry
+    class C_FRONT1,C_FRONT2,C_API1,C_API2,C_API3,C_API4,C_API5,C_API6,B_API1,B_API2,B_API3 core
+    class AI1,AI2,AI3,AI4,AI5,AI6 ai
+    class D1,D2,D3 data
+    class N1,N2,N3,N4 auto
+    class S1,S2 service
+    class I1,I2,I3,I4,I5,I6,I7,I8,I9,I10 infra
+```
