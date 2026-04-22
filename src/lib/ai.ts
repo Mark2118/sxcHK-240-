@@ -160,7 +160,10 @@ async function callLLM(prompt: string): Promise<string> {
     }
 
     const data = await res.json()
-    return data.choices[0].message.content
+    let content = data.choices[0].message.content
+    // 去除 MiniMax 思考标签
+    content = content.replace(/<think>[\s\S]*?<\/think>\s*/, '')
+    return content
   } catch (e: any) {
     if (e.name === 'AbortError') throw new Error('AI 分析超时，请稍后重试')
     throw e
