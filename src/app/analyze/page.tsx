@@ -21,6 +21,7 @@ interface AnalysisResult {
       correctAnswer: string
       isCorrect: boolean
       analysis: string
+      knowledgePoint?: string
     }>
     moduleScores: Array<{
       module: string
@@ -90,7 +91,7 @@ export default function AnalyzePage() {
   const [correcting, setCorrecting] = useState(false)
   const [correctProgress, setCorrectProgress] = useState('')
   const [result, setResult] = useState<AnalysisResult | null>(null)
-  const [activeTab, setActiveTab] = useState<'overview' | 'detail' | 'exercises' | 'html' | 'correct'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'action' | 'detail' | 'exercises' | 'html' | 'correct'>('overview')
   const [ocrLoading, setOcrLoading] = useState(false)
   const [ocrResult, setOcrResult] = useState(false)
   const [ocrText, setOcrText] = useState('')
@@ -568,6 +569,7 @@ export default function AnalyzePage() {
                 <div className="flex gap-2 border-b border-gray-100 mb-4 overflow-x-auto">
                   {[
                     { key: 'overview', label: '总览' },
+                    { key: 'action', label: '今晚行动' },
                     { key: 'detail', label: '逐题解析' },
                     { key: 'exercises', label: '专项练习' },
                     ...(result.correctResult ? [{ key: 'correct', label: '客观批改' }] : []),
@@ -662,6 +664,47 @@ export default function AnalyzePage() {
                   <div className="bg-blue-50 rounded-xl p-5 border-l-4 border-blue-800">
                     <h3 className="font-semibold text-blue-900 mb-2">阶段性学习建议</h3>
                     <p className="text-sm text-blue-800 leading-relaxed">{result.report!.examStrategy}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* 今晚行动清单 */}
+              {!result.isPreview && activeTab === 'action' && (
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-200 p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-lg">🎯</span>
+                      <h3 className="font-semibold text-amber-900">今晚行动清单</h3>
+                    </div>
+                    <div className="space-y-2.5">
+                      {result.report!.weakPoints.map((wp, i) => (
+                        <div key={`wp-${i}`} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-amber-100">
+                          <div className="w-6 h-6 bg-amber-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">{i + 1}</div>
+                          <div className="text-sm text-gray-800">重点巩固：<span className="font-medium">{wp}</span></div>
+                        </div>
+                      ))}
+                      {result.report!.questions.filter((q) => !q.isCorrect).slice(0, 3).map((q, i) => (
+                        <div key={`wq-${i}`} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-amber-100">
+                          <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">{(result.report!.weakPoints.length || 0) + i + 1}</div>
+                          <div className="text-sm text-gray-800">重做第{q.no}题：<span className="font-medium">{q.knowledgePoint || '相关知识点'}</span></div>
+                        </div>
+                      ))}
+                      {result.report!.suggestions.slice(0, 2).map((sg, i) => (
+                        <div key={`sg-${i}`} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-amber-100">
+                          <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">{(result.report!.weakPoints.length || 0) + result.report!.questions.filter((q) => !q.isCorrect).slice(0, 3).length + i + 1}</div>
+                          <div className="text-sm text-gray-800">{sg}</div>
+                        </div>
+                      ))}
+                      <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-amber-100">
+                        <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                          {(result.report!.weakPoints.length || 0) + result.report!.questions.filter((q) => !q.isCorrect).slice(0, 3).length + result.report!.suggestions.slice(0, 2).length + 1}
+                        </div>
+                        <div className="text-sm text-gray-800">建议 2 周后再次分析，观察薄弱点改善情况</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-blue-50 rounded-xl p-4 border-l-4 border-blue-800">
+                    <p className="text-sm text-blue-800">💡 完成以上行动后，可在<a href="/xsc/trends" className="underline font-medium">薄弱点追踪</a>页面查看历史趋势。</p>
                   </div>
                 </div>
               )}

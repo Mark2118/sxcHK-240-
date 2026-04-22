@@ -166,9 +166,9 @@ export default function LandingPage() {
               免费体验 3 次
             </span>
             <span className="text-gray-200">|</span>
-            <span>月卡 ¥39</span>
+            <span>月卡 ¥29.9</span>
             <span className="text-gray-200">|</span>
-            <span>年卡 ¥299</span>
+            <span>年卡 ¥239</span>
           </div>
 
           {/* 声明 */}
