@@ -19,6 +19,7 @@ export type MarketingEvent =
   | 'payment_success'      // 支付成功
   | 'payment_failed'       // 支付失败
   | 'member_expiring'      // 会员即将到期（由n8n定时检测，后端不触发）
+  | 'application_submitted' // 试用申请提交
 
 interface MarketingPayload {
   event: MarketingEvent
@@ -144,7 +145,19 @@ export function emitPaymentSuccess(
   emitMarketingEvent('payment_success', { userId, openid, orderType, amount })
 }
 
-/** 支付失败 */
+/** 试用申请提交 */
+export function emitApplicationSubmitted(
+  applicationId: string,
+  company: string,
+  contactName: string,
+  phone: string,
+  email?: string,
+  problem?: string
+) {
+  emitMarketingEvent('application_submitted', {
+    applicationId, company, contactName, phone, email, problem,
+  })
+}
 export function emitPaymentFailed(userId: string, openid: string, amount: number) {
   emitMarketingEvent('payment_failed', { userId, openid, amount })
 }

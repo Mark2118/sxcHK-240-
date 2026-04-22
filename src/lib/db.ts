@@ -71,7 +71,20 @@ db.exec(`
     FOREIGN KEY (report_id) REFERENCES reports(id)
   );
 
-  CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at DESC);
+  CREATE TABLE IF NOT EXISTS applications (
+    id TEXT PRIMARY KEY,
+    company TEXT NOT NULL,
+    contact_name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    email TEXT,
+    problem TEXT,
+    status TEXT DEFAULT 'pending',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
+  CREATE INDEX IF NOT EXISTS idx_applications_created_at ON applications(created_at DESC);
   CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id);
   CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
   CREATE INDEX IF NOT EXISTS idx_user_report_access_user_id ON user_report_access(user_id);
@@ -353,6 +366,57 @@ export const dbClient = {
         LIMIT ?
       `)
       return stmt.all(userId, limit) as CheckRecord[]
+    },
+  },
+
+  // ====== 试用申请表 ======
+  applications: {
+    create: async (data: {
+      company: string
+      contactName: string
+      phone: string
+      email?: string
+      problem?: string
+    }) => {
+      const id = 'WGA-' + Date.now().toString(36).toUpperCase()
+      const now = new Date().toISOString()
+      const stmt = db.prepare(`
+        INSERT INTO applications (id, company, contact_name, phone, email, problem, status, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `)
+      stmt.run(id, data.company, data.contactName, data.phone, data.email || null, data.problem || null, 'pending', now, now)
+      return { id, ...data, status: 'pending' as const, createdAt: now, updatedAt: now }
+    },
+
+    findById: async (id: string) => {
+      const stmt = db.prepare(`
+        SELECT id, company, contact_name as contactName, phone, email, problem, status, created_at as createdAt, updated_at as updatedAt
+        FROM applications WHERE id = ?
+      `)
+      return (stmt.get(id) as any) || null
+    },
+
+    findByStatus: async (status?: string, limit: number = 50) => {
+      if (status) {
+        const stmt = db.prepare(`
+          SELECT id, company, contact_name as contactName, phone, email, problem, status, created_at as createdAt
+          FROM applications WHERE status = ? ORDER BY created_at DESC LIMIT ?
+        `)
+        return stmt.all(status, limit) as any[]
+      }
+      const stmt = db.prepare(`
+        SELECT id, company, contact_name as contactName, phone, email, problem, status, created_at as createdAt
+        FROM applications ORDER BY created_at DESC LIMIT ?
+      `)
+      return stmt.all(limit) as any[]
+    },
+
+    updateStatus: async (id: string, status: 'pending' | 'approved' | 'rejected' | 'active') => {
+      const stmt = db.prepare(`
+        UPDATE applications SET status = ?, updated_at = ? WHERE id = ?
+      `)
+      const result = stmt.run(status, new Date().toISOString(), id)
+      return result.changes > 0
     },
   },
 }
