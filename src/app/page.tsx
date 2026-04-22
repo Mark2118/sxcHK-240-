@@ -29,6 +29,7 @@ export default function LandingPage() {
   const { user, loading: authLoading } = useAuth()
   const [selectedGrade, setSelectedGrade] = useState<string>('general')
   const [isNavigating, setIsNavigating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleStart = async () => {
     if (isNavigating) return
@@ -40,26 +41,34 @@ export default function LandingPage() {
       return
     }
 
-    // 未登录：模拟微信登录（同 analyze 页面逻辑）
-    try {
-      const mockCode = 'mock_wx_code_' + Date.now()
-      const res = await fetch('/xsc/api/auth/wechat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: mockCode }),
-      })
-      const data = await res.json()
-      if (data.success && data.token) {
-        localStorage.setItem('xsc_token', data.token)
-        window.location.href = `/xsc/analyze?grade=${selectedGrade}`
-      } else {
-        alert('登录失败: ' + (data.error || '请稍后重试'))
+    // 未登录
+    if (process.env.NODE_ENV === 'development') {
+      // 开发环境：模拟微信登录
+      try {
+        const mockCode = 'mock_wx_code_' + Date.now()
+        const res = await fetch('/xsc/api/auth/wechat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: mockCode }),
+        })
+        const data = await res.json()
+        if (data.success && data.token) {
+          localStorage.setItem('xsc_token', data.token)
+          window.location.href = `/xsc/analyze?grade=${selectedGrade}`
+        } else {
+          setError('登录失败: ' + (data.error || '请稍后重试'))
+          setIsNavigating(false)
+        }
+      } catch (e) {
+        setError('网络错误，请稍后重试')
         setIsNavigating(false)
       }
-    } catch (e) {
-      alert('网络错误，请稍后重试')
-      setIsNavigating(false)
+      return
     }
+
+    // 生产环境：跳转微信 OAuth 授权
+    const redirectUri = encodeURIComponent(`/xsc/analyze?grade=${selectedGrade}`)
+    window.location.href = `/xsc/api/auth/wechat?redirect=${redirectUri}`
   }
 
   return (
@@ -96,6 +105,13 @@ export default function LandingPage() {
               基于 WinGo 学情引擎，为家庭提供科学的学情分析参考
             </p>
           </div>
+
+          {/* 错误提示 */}
+          {error && (
+            <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm text-center">
+              {error}
+            </div>
+          )}
 
           {/* 学段选择 */}
           <div className="mb-8">

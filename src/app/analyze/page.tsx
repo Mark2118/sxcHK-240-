@@ -248,22 +248,28 @@ export default function AnalyzePage() {
             ) : (
               <button
                 onClick={() => {
-                  const mockLogin = async () => {
-                    const mockCode = 'mock_wx_code_' + Date.now()
-                    const res = await fetch('/xsc/api/auth/wechat', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ code: mockCode }),
-                    })
-                    const data = await res.json()
-                    if (data.success && data.token) {
-                      localStorage.setItem('xsc_token', data.token)
-                      window.location.reload()
-                    } else {
-                      alert('登录失败: ' + (data.error || '未知错误'))
+                  const doLogin = async () => {
+                    if (process.env.NODE_ENV === 'development') {
+                      // 开发环境：模拟微信登录
+                      const mockCode = 'mock_wx_code_' + Date.now()
+                      const res = await fetch('/xsc/api/auth/wechat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code: mockCode }),
+                      })
+                      const data = await res.json()
+                      if (data.success && data.token) {
+                        localStorage.setItem('xsc_token', data.token)
+                        window.location.reload()
+                      } else {
+                        setError('登录失败: ' + (data.error || '未知错误'))
+                      }
+                      return
                     }
+                    // 生产环境：跳转微信 OAuth
+                    window.location.href = '/xsc/api/auth/wechat?redirect=' + encodeURIComponent(window.location.pathname + window.location.search)
                   }
-                  mockLogin()
+                  doLogin()
                 }}
                 className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
               >
@@ -525,22 +531,26 @@ export default function AnalyzePage() {
                         {!user ? (
                           <button
                             onClick={() => {
-                              const mockLogin = async () => {
-                                const mockCode = 'mock_wx_code_' + Date.now()
-                                const res = await fetch('/xsc/api/auth/wechat', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ code: mockCode }),
-                                })
-                                const data = await res.json()
-                                if (data.success && data.token) {
-                                  localStorage.setItem('xsc_token', data.token)
-                                  window.location.reload()
-                                } else {
-                                  alert('登录失败: ' + (data.error || '未知错误'))
+                              const doLogin = async () => {
+                                if (process.env.NODE_ENV === 'development') {
+                                  const mockCode = 'mock_wx_code_' + Date.now()
+                                  const res = await fetch('/xsc/api/auth/wechat', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ code: mockCode }),
+                                  })
+                                  const data = await res.json()
+                                  if (data.success && data.token) {
+                                    localStorage.setItem('xsc_token', data.token)
+                                    window.location.reload()
+                                  } else {
+                                    setError('登录失败: ' + (data.error || '未知错误'))
+                                  }
+                                  return
                                 }
+                                window.location.href = '/xsc/api/auth/wechat?redirect=' + encodeURIComponent(window.location.pathname + window.location.search)
                               }
-                              mockLogin()
+                              doLogin()
                             }}
                             className="px-4 py-2 bg-green-500 text-white text-sm font-medium rounded-lg hover:bg-green-600 transition-colors"
                           >

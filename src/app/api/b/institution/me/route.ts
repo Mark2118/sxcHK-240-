@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { dbClient } from '@/lib/db'
+import { authB } from '@/lib/b-auth'
 
 export async function GET(req: NextRequest) {
   try {
-    const apiKey = req.headers.get('x-api-key')
-    const apiSecret = req.headers.get('x-api-secret')
-
-    if (!apiKey || !apiSecret) {
-      return NextResponse.json({ success: false, error: 'UNAUTHORIZED', message: '缺少认证信息' }, { status: 401 })
-    }
-
-    const institution = dbClient.institutions.findByApiKey(apiKey)
-    if (!institution || institution.apiSecret !== apiSecret) {
+    const institution = authB(req)
+    if (!institution) {
       return NextResponse.json({ success: false, error: 'UNAUTHORIZED', message: '认证失败' }, { status: 401 })
     }
 
@@ -38,15 +32,8 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const apiKey = req.headers.get('x-api-key')
-    const apiSecret = req.headers.get('x-api-secret')
-
-    if (!apiKey || !apiSecret) {
-      return NextResponse.json({ success: false, error: 'UNAUTHORIZED', message: '缺少认证信息' }, { status: 401 })
-    }
-
-    const institution = dbClient.institutions.findByApiKey(apiKey)
-    if (!institution || institution.apiSecret !== apiSecret) {
+    const institution = authB(req)
+    if (!institution) {
       return NextResponse.json({ success: false, error: 'UNAUTHORIZED', message: '认证失败' }, { status: 401 })
     }
 

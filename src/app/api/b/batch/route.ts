@@ -1,17 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { dbClient } from '@/lib/db'
-
-function auth(req: NextRequest) {
-  const apiKey = req.headers.get('x-api-key')
-  const apiSecret = req.headers.get('x-api-secret')
-  if (!apiKey || !apiSecret) return null
-  const inst = dbClient.institutions.findByApiKey(apiKey)
-  if (!inst || inst.apiSecret !== apiSecret) return null
-  return inst
-}
+import { authB } from '@/lib/b-auth'
 
 export async function GET(req: NextRequest) {
-  const institution = auth(req)
+  const institution = authB(req)
   if (!institution) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 })
 
   const batches = dbClient.batchAnalyses.findByInstitution(institution.id)
