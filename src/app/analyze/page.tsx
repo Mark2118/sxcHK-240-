@@ -97,6 +97,7 @@ export default function AnalyzePage() {
   const [ocrText, setOcrText] = useState('')
   // 密码验证已移除 — 正式环境直接开放
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageUpload = useCallback(async (file: File) => {

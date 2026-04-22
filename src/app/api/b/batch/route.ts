@@ -7,13 +7,20 @@ export async function GET(req: NextRequest) {
   const institution = authB(req)
   if (!institution) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 })
 
-  const batches = dbClient.batchAnalyses.findByInstitution(institution.id)
-  return NextResponse.json({ success: true, data: batches })
+  try {
+    const batches = dbClient.batchAnalyses.findByInstitution(institution.id)
+    return NextResponse.json({ success: true, data: batches })
+  } catch (e: any) {
+    console.error('批量分析查询错误:', e)
+    return NextResponse.json({ success: false, error: 'INTERNAL_ERROR', message: e.message }, { status: 500 })
+  }
 }
 
 export async function POST(req: NextRequest) {
   const institution = authB(req)
   if (!institution) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 })
+
+  let batchId: string | null = null
 
   try {
     const body = await req.json()
@@ -23,8 +30,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'INVALID_INPUT', message: '请提供班级ID和作业图片' }, { status: 400 })
     }
 
-    if (images.length > 5) {
-      return NextResponse.json({ success: false, error: 'INVALID_INPUT', message: '单次最多处理5份作业' }, { status: 400 })
+    if (images.length > 3) {
+      return NextResponse.json({ success: false, error: 'INVALID_INPUT', message: '单次最多处理3份作业' }, { status: 400 })
+    }
+
+    // 验证 classId 属于当前机构
+    const cls = dbClient.classes.findById(classId)
+    if (!cls || cls.institutionId !== institution.id) {
+      return NextResponse.json({ success: false, error: 'NOT_FOUND', message: '班级不存在' }, { status: 404 })
     }
 
     // 创建批量分析记录
@@ -33,6 +46,7 @@ export async function POST(req: NextRequest) {
       classId,
       total: images.length,
     })
+    batchId = batch.id
 
     // 执行批量分析
     const { students, summary } = await processBatch(images, subject)
@@ -60,6 +74,14 @@ export async function POST(req: NextRequest) {
     })
   } catch (e: any) {
     console.error('批量分析错误:', e)
+    // 如果已创建 batch，标记为失败
+    if (batchId) {
+      try {
+        dbClient.batchAnalyses.updateStatus(batchId, 'failed')
+      } catch (updateErr) {
+        console.error('更新 batch 失败状态出错:', updateErr)
+      }
+    }
     return NextResponse.json({ success: false, error: 'INTERNAL_ERROR', message: e.message }, { status: 500 })
   }
 }

@@ -6,8 +6,12 @@ export async function GET(req: NextRequest) {
   const institution = authB(req)
   if (!institution) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 })
 
-  const classes = dbClient.classes.findByInstitution(institution.id)
-  return NextResponse.json({ success: true, data: classes })
+  try {
+    const classes = dbClient.classes.findByInstitution(institution.id)
+    return NextResponse.json({ success: true, data: classes })
+  } catch (e: any) {
+    return NextResponse.json({ success: false, error: 'INTERNAL_ERROR', message: e.message }, { status: 500 })
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -45,6 +49,11 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'NOT_FOUND' }, { status: 404 })
     }
 
+    // 级联删除：先删该班级下的学员
+    const students = dbClient.students.findByClass(id)
+    for (const s of students) {
+      dbClient.students.delete(s.id)
+    }
     dbClient.classes.delete(id)
     return NextResponse.json({ success: true })
   } catch (e: any) {

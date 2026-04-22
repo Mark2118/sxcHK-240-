@@ -6,16 +6,21 @@ export async function GET(req: NextRequest) {
   const institution = authB(req)
   if (!institution) return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 })
 
-  const { searchParams } = new URL(req.url)
-  const classId = searchParams.get('classId')
+  try {
+    const { searchParams } = new URL(req.url)
+    const classId = searchParams.get('classId')
 
-  if (classId) {
-    const students = dbClient.students.findByClass(classId)
+    if (classId) {
+      const students = dbClient.students.findByClass(classId)
+      return NextResponse.json({ success: true, data: students })
+    }
+
+    const students = dbClient.students.findByInstitution(institution.id)
     return NextResponse.json({ success: true, data: students })
+  } catch (e: any) {
+    console.error('学员查询错误:', e)
+    return NextResponse.json({ success: false, error: 'INTERNAL_ERROR', message: e.message }, { status: 500 })
   }
-
-  const students = dbClient.students.findByInstitution(institution.id)
-  return NextResponse.json({ success: true, data: students })
 }
 
 export async function POST(req: NextRequest) {

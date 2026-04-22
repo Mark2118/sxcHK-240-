@@ -602,12 +602,23 @@ export const dbClient = {
       `)
       return stmt.all(institutionId) as BatchAnalysisRecord[]
     },
+    findById: (id: string) => {
+      const stmt = db.prepare(`
+        SELECT id, institution_id as institutionId, class_id as classId, status, total, completed, results, created_at as createdAt, completed_at as completedAt
+        FROM batch_analyses WHERE id = ?
+      `)
+      return (stmt.get(id) as BatchAnalysisRecord) || null
+    },
     updateProgress: (id: string, completed: number, results?: string) => {
       const now = new Date().toISOString()
       const stmt = db.prepare(`
         UPDATE batch_analyses SET completed = ?, results = ?, status = ?, completed_at = ? WHERE id = ?
       `)
       return stmt.run(completed, results || null, completed > 0 ? 'completed' : 'processing', now, id).changes > 0
+    },
+    updateStatus: (id: string, status: string) => {
+      const stmt = db.prepare(`UPDATE batch_analyses SET status = ? WHERE id = ?`)
+      return stmt.run(status, id).changes > 0
     },
   },
 

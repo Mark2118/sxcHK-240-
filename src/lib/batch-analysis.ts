@@ -43,8 +43,8 @@ export async function analyzeSingleImage(
     // 2. 提交批改任务
     const taskId = await submitCorrectTask(base64Data)
 
-    // 3. 轮询批改结果
-    const correctResult = await pollCorrectResult(taskId, 15, 2000)
+    // 3. 轮询批改结果（8次×2秒=16秒，3张=48秒，安全）
+    const correctResult = await pollCorrectResult(taskId, 8, 2000)
 
     // 4. 合并文本
     let analysisText = ''
@@ -94,13 +94,13 @@ export async function analyzeSingleImage(
 
 /**
  * 批量处理并汇总
- * 限制最多 5 张，避免超时
+ * 限制最多 3 张，避免超时（单张最多16秒轮询）
  */
 export async function processBatch(
   images: string[],
   subject: string = 'math'
 ): Promise<{ students: StudentAnalysis[]; summary: BatchSummary }> {
-  const limit = Math.min(images.length, 5)
+  const limit = Math.min(images.length, 3)
   const results: StudentAnalysis[] = []
 
   for (let i = 0; i < limit; i++) {
