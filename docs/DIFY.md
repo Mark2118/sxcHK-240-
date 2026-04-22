@@ -77,7 +77,7 @@ WinGo-Dify-KB/
 - Q: 可以上传手写体吗？
   A: 可以，但印刷体识别准确率更高
 
-[查看详细教程](https://wingo.asia/guide/photo)
+[查看详细教程](https://100.106.90.55:3002/guide/photo)
 ```
 
 ---
