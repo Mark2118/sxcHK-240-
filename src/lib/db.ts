@@ -83,11 +83,70 @@ db.exec(`
     updated_at TEXT NOT NULL
   );
 
+  -- ====== B端机构表 ======
+  CREATE TABLE IF NOT EXISTS institutions (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    contact TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    email TEXT,
+    logo TEXT,
+    primary_color TEXT DEFAULT '#3B82F6',
+    report_template TEXT DEFAULT 'default',
+    api_key TEXT UNIQUE NOT NULL,
+    api_secret TEXT NOT NULL,
+    plan TEXT DEFAULT 'trial',
+    expires_at TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS classes (
+    id TEXT PRIMARY KEY,
+    institution_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    grade INTEGER NOT NULL,
+    subject TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (institution_id) REFERENCES institutions(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS students (
+    id TEXT PRIMARY KEY,
+    institution_id TEXT NOT NULL,
+    class_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    parent_user_id TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (institution_id) REFERENCES institutions(id),
+    FOREIGN KEY (class_id) REFERENCES classes(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS batch_analyses (
+    id TEXT PRIMARY KEY,
+    institution_id TEXT NOT NULL,
+    class_id TEXT NOT NULL,
+    status TEXT DEFAULT 'processing',
+    total INTEGER NOT NULL,
+    completed INTEGER DEFAULT 0,
+    results TEXT,
+    created_at TEXT NOT NULL,
+    completed_at TEXT,
+    FOREIGN KEY (institution_id) REFERENCES institutions(id),
+    FOREIGN KEY (class_id) REFERENCES classes(id)
+  );
+
   CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
   CREATE INDEX IF NOT EXISTS idx_applications_created_at ON applications(created_at DESC);
   CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id);
   CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
   CREATE INDEX IF NOT EXISTS idx_user_report_access_user_id ON user_report_access(user_id);
+  CREATE INDEX IF NOT EXISTS idx_institutions_api_key ON institutions(api_key);
+  CREATE INDEX IF NOT EXISTS idx_classes_institution ON classes(institution_id);
+  CREATE INDEX IF NOT EXISTS idx_students_institution_class ON students(institution_id, class_id);
 `)
 
 // 兼容旧表迁移（幂等性处理，防止 Next.js 构建多 worker 并发导致 duplicate column）
@@ -168,6 +227,56 @@ export interface UserReportAccessRecord {
   userId: string
   reportId: string
   accessedAt: string
+}
+
+export interface InstitutionRecord {
+  id: string
+  name: string
+  type: string
+  contact: string
+  phone: string
+  email?: string
+  logo?: string
+  primaryColor?: string
+  reportTemplate?: string
+  apiKey: string
+  apiSecret: string
+  plan: string
+  expiresAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ClassRecord {
+  id: string
+  institutionId: string
+  name: string
+  grade: number
+  subject: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface StudentRecord {
+  id: string
+  institutionId: string
+  classId: string
+  name: string
+  parentUserId?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface BatchAnalysisRecord {
+  id: string
+  institutionId: string
+  classId: string
+  status: string
+  total: number
+  completed: number
+  results?: string
+  createdAt: string
+  completedAt?: string
 }
 
 export const dbClient = {
@@ -366,6 +475,139 @@ export const dbClient = {
         LIMIT ?
       `)
       return stmt.all(userId, limit) as CheckRecord[]
+    },
+  },
+
+  // ====== B端机构 ======
+  institutions: {
+    create: (data: {
+      name: string
+      type: string
+      contact: string
+      phone: string
+      email?: string
+    }) => {
+      const id = 'WGI-' + Date.now().toString(36).toUpperCase()
+      const apiKey = 'wgo_' + crypto.randomUUID().replace(/-/g, '')
+      const apiSecret = crypto.randomUUID().replace(/-/g, '')
+      const now = new Date().toISOString()
+      const stmt = db.prepare(`
+        INSERT INTO institutions (id, name, type, contact, phone, email, api_key, api_secret, plan, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `)
+      stmt.run(id, data.name, data.type, data.contact, data.phone, data.email || null, apiKey, apiSecret, 'trial', now, now)
+      return { id, name: data.name, type: data.type, contact: data.contact, phone: data.phone, email: data.email, apiKey, apiSecret, plan: 'trial', createdAt: now, updatedAt: now } as InstitutionRecord
+    },
+    findByApiKey: (apiKey: string) => {
+      const stmt = db.prepare(`
+        SELECT id, name, type, contact, phone, email, logo, primary_color as primaryColor, report_template as reportTemplate,
+               api_key as apiKey, api_secret as apiSecret, plan, expires_at as expiresAt, created_at as createdAt, updated_at as updatedAt
+        FROM institutions WHERE api_key = ?
+      `)
+      return (stmt.get(apiKey) as InstitutionRecord) || null
+    },
+    findById: (id: string) => {
+      const stmt = db.prepare(`
+        SELECT id, name, type, contact, phone, email, logo, primary_color as primaryColor, report_template as reportTemplate,
+               api_key as apiKey, api_secret as apiSecret, plan, expires_at as expiresAt, created_at as createdAt, updated_at as updatedAt
+        FROM institutions WHERE id = ?
+      `)
+      return (stmt.get(id) as InstitutionRecord) || null
+    },
+    update: (id: string, data: Partial<Pick<InstitutionRecord, 'name' | 'contact' | 'phone' | 'email' | 'logo' | 'primaryColor' | 'reportTemplate'>>) => {
+      const sets: string[] = []
+      const vals: (string | null)[] = []
+      if (data.name !== undefined) { sets.push('name = ?'); vals.push(data.name) }
+      if (data.contact !== undefined) { sets.push('contact = ?'); vals.push(data.contact) }
+      if (data.phone !== undefined) { sets.push('phone = ?'); vals.push(data.phone) }
+      if (data.email !== undefined) { sets.push('email = ?'); vals.push(data.email) }
+      if (data.logo !== undefined) { sets.push('logo = ?'); vals.push(data.logo) }
+      if (data.primaryColor !== undefined) { sets.push('primary_color = ?'); vals.push(data.primaryColor) }
+      if (data.reportTemplate !== undefined) { sets.push('report_template = ?'); vals.push(data.reportTemplate) }
+      if (sets.length === 0) return false
+      sets.push('updated_at = ?')
+      vals.push(new Date().toISOString())
+      vals.push(id)
+      const stmt = db.prepare(`UPDATE institutions SET ${sets.join(', ')} WHERE id = ?`)
+      return stmt.run(...vals).changes > 0
+    },
+  },
+
+  classes: {
+    create: (data: { institutionId: string; name: string; grade: number; subject: string }) => {
+      const id = 'WGC-' + Date.now().toString(36).toUpperCase()
+      const now = new Date().toISOString()
+      const stmt = db.prepare(`INSERT INTO classes (id, institution_id, name, grade, subject, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`)
+      stmt.run(id, data.institutionId, data.name, data.grade, data.subject, now, now)
+      return { id, ...data, createdAt: now, updatedAt: now } as ClassRecord
+    },
+    findByInstitution: (institutionId: string) => {
+      const stmt = db.prepare(`
+        SELECT id, institution_id as institutionId, name, grade, subject, created_at as createdAt, updated_at as updatedAt
+        FROM classes WHERE institution_id = ? ORDER BY created_at DESC
+      `)
+      return stmt.all(institutionId) as ClassRecord[]
+    },
+    findById: (id: string) => {
+      const stmt = db.prepare(`
+        SELECT id, institution_id as institutionId, name, grade, subject, created_at as createdAt, updated_at as updatedAt
+        FROM classes WHERE id = ?
+      `)
+      return (stmt.get(id) as ClassRecord) || null
+    },
+    delete: (id: string) => {
+      return db.prepare('DELETE FROM classes WHERE id = ?').run(id).changes > 0
+    },
+  },
+
+  students: {
+    create: (data: { institutionId: string; classId: string; name: string; parentUserId?: string }) => {
+      const id = 'WGS-' + Date.now().toString(36).toUpperCase()
+      const now = new Date().toISOString()
+      const stmt = db.prepare(`INSERT INTO students (id, institution_id, class_id, name, parent_user_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`)
+      stmt.run(id, data.institutionId, data.classId, data.name, data.parentUserId || null, now, now)
+      return { id, ...data, createdAt: now, updatedAt: now } as StudentRecord
+    },
+    findByClass: (classId: string) => {
+      const stmt = db.prepare(`
+        SELECT id, institution_id as institutionId, class_id as classId, name, parent_user_id as parentUserId, created_at as createdAt, updated_at as updatedAt
+        FROM students WHERE class_id = ? ORDER BY created_at DESC
+      `)
+      return stmt.all(classId) as StudentRecord[]
+    },
+    findByInstitution: (institutionId: string) => {
+      const stmt = db.prepare(`
+        SELECT id, institution_id as institutionId, class_id as classId, name, parent_user_id as parentUserId, created_at as createdAt, updated_at as updatedAt
+        FROM students WHERE institution_id = ? ORDER BY created_at DESC
+      `)
+      return stmt.all(institutionId) as StudentRecord[]
+    },
+    delete: (id: string) => {
+      return db.prepare('DELETE FROM students WHERE id = ?').run(id).changes > 0
+    },
+  },
+
+  batchAnalyses: {
+    create: (data: { institutionId: string; classId: string; total: number }) => {
+      const id = 'WGB-' + Date.now().toString(36).toUpperCase()
+      const now = new Date().toISOString()
+      const stmt = db.prepare(`INSERT INTO batch_analyses (id, institution_id, class_id, status, total, created_at) VALUES (?, ?, ?, ?, ?, ?)`)
+      stmt.run(id, data.institutionId, data.classId, 'processing', data.total, now)
+      return { id, ...data, status: 'processing', completed: 0, createdAt: now } as BatchAnalysisRecord
+    },
+    findByInstitution: (institutionId: string) => {
+      const stmt = db.prepare(`
+        SELECT id, institution_id as institutionId, class_id as classId, status, total, completed, results, created_at as createdAt, completed_at as completedAt
+        FROM batch_analyses WHERE institution_id = ? ORDER BY created_at DESC
+      `)
+      return stmt.all(institutionId) as BatchAnalysisRecord[]
+    },
+    updateProgress: (id: string, completed: number, results?: string) => {
+      const now = new Date().toISOString()
+      const stmt = db.prepare(`
+        UPDATE batch_analyses SET completed = ?, results = ?, status = ?, completed_at = ? WHERE id = ?
+      `)
+      return stmt.run(completed, results || null, completed > 0 ? 'completed' : 'processing', now, id).changes > 0
     },
   },
 
