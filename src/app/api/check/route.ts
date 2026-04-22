@@ -30,6 +30,19 @@ export async function POST(req: NextRequest) {
 
     const userId = payload.userId as string
 
+    // Phase 2.2: 人工复核节点 — 低置信度检查
+    if (text.includes('[低置信度]')) {
+      const lowConfCount = (text.match(/\[低置信度\]/g) || []).length
+      return NextResponse.json({
+        success: false,
+        code: 'NEED_REVIEW',
+        error: `识别质量不足，发现 ${lowConfCount} 处低置信度内容`,
+        detail: '建议重新拍照（光线充足、避免手抖）或手动输入作业内容',
+        suggestion: '如需继续分析，可点击「仍要分析」忽略此警告',
+        canProceed: true,
+      }, { status: 422 })
+    }
+
     // 检查使用限额
     const limitCheck = dbClient.userLimits.canGenerate(userId)
     if (!limitCheck.can) {
@@ -43,14 +56,15 @@ export async function POST(req: NextRequest) {
     const report = await analyzeHomework(text, subject)
     const html = renderReportHTML(report)
 
-    // 2. 根据薄弱点生成个性化练习
+    // 2. 根据薄弱点生成个性化练习（Phase 2.1: 传入原始文本做题型锚定）
     let exercises = null
     if (generateExerciseSet || report.wrong > 0) {
       try {
         exercises = await generateExercises(
           report.weakPoints,
           report.moduleScores,
-          subject
+          subject,
+          text // Phase 2.1: 原始文本用于题型锚定
         )
       } catch (e) {
         console.error('练习生成失败:', e)

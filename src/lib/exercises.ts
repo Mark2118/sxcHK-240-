@@ -23,10 +23,40 @@ export interface ExerciseSet {
   summary: string
 }
 
+// Phase 2.1: 从原始文本中提取题型分布
+function extractQuestionTypes(originalText: string): string {
+  const types: Record<string, number> = {}
+  const patterns = [
+    { name: '选择题', regex: /选择题|单选|多选|\[选择\]|选项/g },
+    { name: '填空题', regex: /填空题|填空|\[填空\]|___/g },
+    { name: '判断题', regex: /判断题|判断|\[判断\]|T\/F|√|×/g },
+    { name: '计算题', regex: /计算题|计算|\[计算\]|竖式|脱式/g },
+    { name: '应用题', regex: /应用题|应用|\[应用\]|解决问题/g },
+    { name: '解答题', regex: /解答题|解答|\[解答\]|简答|问答/g },
+    { name: '看图填词', regex: /看图|填词|picture|fill in/g },
+  ]
+
+  for (const p of patterns) {
+    const matches = originalText.match(p.regex)
+    if (matches) {
+      types[p.name] = (types[p.name] || 0) + matches.length
+    }
+  }
+
+  const total = Object.values(types).reduce((s, c) => s + c, 0)
+  if (total === 0) return '未明确（建议均衡分布各题型）'
+
+  return Object.entries(types)
+    .map(([name, count]) => `${name}${count}道`)
+    .join('、')
+}
+
 function buildPrompt(
   weakPoints: string[],
   moduleScores: Array<{ module: string; scoreRate: number; status: string }>,
-  subject: string
+  subject: string,
+  originalText: string = '',
+  grade: string = '小升初'
 ): string {
   const weakModules = moduleScores
     .filter((m) => m.status === '需关注' || m.status === '提升中')
@@ -50,8 +80,12 @@ function buildPrompt(
     difficultyDistribution = '基础题4道 + 提高题1道（薄弱较多，夯实基础为主）'
   }
 
+  // Phase 2.1: 试卷难度锚定
+  const questionTypeAnchor = extractQuestionTypes(originalText)
+
   return `你是一位资深教育数据分析师，请根据以下学生的真实学情诊断数据，生成高度个性化的巩固练习。
 【学科】${subject === 'math' ? '小升初数学' : subject}
+【年级】${grade}
 
 【薄弱点】${weakPoints.length > 0 ? weakPoints.map((p) => `• ${p}`).join('\n') : '暂无明确薄弱点，建议综合巩固'}
 
@@ -61,13 +95,16 @@ function buildPrompt(
 
 【学生综合得分率】${avgScore}%
 
+【原始试卷题型分布】${questionTypeAnchor}
+
 【出题要求】
 1. 生成 5 道练习题，必须紧扣上述薄弱点和需巩固模块
 2. 难度分布：${difficultyDistribution}
-3. 题目要符合小升初考试风格，语言简洁明确
-4. 每道题目必须包含：题号、题型、题目内容、参考答案、详细解析、难度标签、对应知识点
-5. 解析要包含：解题思路、常见错误分析、与初中知识的衔接提示
-6. LaTeX公式用 $...$ 包裹
+3. **题型锚定**：原始试卷以${questionTypeAnchor}为主，练习题应尽量保持相同题型风格，不要出现原始试卷中没有的题型（如原始全是看图填词，练习不应出现定语从句改错）
+4. 题目要符合${grade}考试风格，语言简洁明确
+5. 每道题目必须包含：题号、题型、题目内容、参考答案、详细解析、难度标签、对应知识点
+6. 解析要包含：解题思路、常见错误分析、与初中知识的衔接提示
+7. LaTeX公式用 $...$ 包裹
 
 【输出格式】严格 JSON：
 {
@@ -141,9 +178,11 @@ function parseExercisesJson(text: string): any {
 export async function generateExercises(
   weakPoints: string[],
   moduleScores: Array<{ module: string; scoreRate: number; status: string }>,
-  subject: string = 'math'
+  subject: string = 'math',
+  originalText: string = '',
+  grade: string = '小升初'
 ): Promise<ExerciseSet> {
-  const prompt = buildPrompt(weakPoints, moduleScores, subject)
+  const prompt = buildPrompt(weakPoints, moduleScores, subject, originalText, grade)
   let text = ''
 
   // 第一优先级：WinGo 学情引擎

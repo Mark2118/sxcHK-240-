@@ -92,11 +92,26 @@ export async function POST(req: NextRequest) {
     const report = await analyzeHomework(fullText, subject)
     const html = renderReportHTML(report)
 
-    // 5. 生成练习题
+    // Phase 2.3: OCR 与批改交叉验证 — 检查题目数量是否一致
+    let crossValidationWarning = null
+    if (paperCut && correctResult) {
+      const ocrCount = paperCut.questions.length
+      const correctCount = correctResult.questions.length
+      if (Math.abs(ocrCount - correctCount) > 2) {
+        crossValidationWarning = `OCR识别${ocrCount}题 vs 批改${correctCount}题，差异较大，建议人工复核`
+      }
+    }
+
+    // 5. 生成练习题（Phase 2.1: 传入原始文本做题型锚定）
     let exercises = null
     if (generateExerciseSet || report.wrong > 0) {
       try {
-        exercises = await generateExercises(report.weakPoints, report.moduleScores, subject)
+        exercises = await generateExercises(
+          report.weakPoints,
+          report.moduleScores,
+          subject,
+          analysisText // Phase 2.1: 原始文本用于题型锚定
+        )
       } catch (e) {
         console.error('练习生成失败:', e)
       }
@@ -153,6 +168,7 @@ export async function POST(req: NextRequest) {
       exercises,
       reportId,
       freeCount: Math.max(0, (limitCheck.freeCount ?? 0) - (limitCheck.type === 'free' ? 1 : 0)),
+      crossValidationWarning, // Phase 2.3: 交叉验证警告
     })
   } catch (error: any) {
     console.error('智能批改错误:', error)
