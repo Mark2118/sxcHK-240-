@@ -56,7 +56,8 @@ function buildPrompt(
   moduleScores: Array<{ module: string; scoreRate: number; status: string }>,
   subject: string,
   originalText: string = '',
-  grade: string = '小升初'
+  grade: string = '小升初',
+  sourceDifficulty: string = '基础'
 ): string {
   const weakModules = moduleScores
     .filter((m) => m.status === '需关注' || m.status === '提升中')
@@ -96,15 +97,17 @@ function buildPrompt(
 【学生综合得分率】${avgScore}%
 
 【原始试卷题型分布】${questionTypeAnchor}
+【原始试卷难度】${sourceDifficulty}
 
 【出题要求】
 1. 生成 5 道练习题，必须紧扣上述薄弱点和需巩固模块
 2. 难度分布：${difficultyDistribution}
 3. **题型锚定**：原始试卷以${questionTypeAnchor}为主，练习题应尽量保持相同题型风格，不要出现原始试卷中没有的题型（如原始全是看图填词，练习不应出现定语从句改错）
-4. 题目要符合${grade}考试风格，语言简洁明确
-5. 每道题目必须包含：题号、题型、题目内容、参考答案、详细解析、难度标签、对应知识点
-6. 解析要包含：解题思路、常见错误分析、与初中知识的衔接提示
-7. LaTeX公式用 $...$ 包裹
+4. **难度纪律**：练习题难度必须与原始试卷难度一致，禁止跳跃到初中/高中水平。如果原始试卷难度为"基础"，练习难度只能是"基础"或"提高"，不能出现"思维拓展"或"初中衔接"。
+5. 题目要符合${grade}考试风格，语言简洁明确
+6. 每道题目必须包含：题号、题型、题目内容、参考答案、详细解析、难度标签、对应知识点
+7. 解析要包含：解题思路、常见错误分析、与初中知识的衔接提示
+8. LaTeX公式用 $...$ 包裹
 
 【输出格式】严格 JSON：
 {
@@ -180,9 +183,10 @@ export async function generateExercises(
   moduleScores: Array<{ module: string; scoreRate: number; status: string }>,
   subject: string = 'math',
   originalText: string = '',
-  grade: string = '小升初'
+  grade: string = '小升初',
+  sourceDifficulty: string = '基础'
 ): Promise<ExerciseSet> {
-  const prompt = buildPrompt(weakPoints, moduleScores, subject, originalText, grade)
+  const prompt = buildPrompt(weakPoints, moduleScores, subject, originalText, grade, sourceDifficulty)
   let text = ''
 
   // 第一优先级：WinGo 学情引擎

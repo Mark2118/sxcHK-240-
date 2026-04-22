@@ -319,6 +319,33 @@ export async function analyzeHomework(
     throw new Error('作业内容不完整，请检查识别结果')
   }
 
+  // 任务 1: 题目数量一致性检查
+  function extractQuestionCount(t: string): number {
+    const patterns = [
+      /[一二三四五六七八九十百]+[、\.\s]/g,               // 中文数字：一、二、三...
+      /第\s*\d+\s*题/g,                                    // 第1题、第2题
+      /^\s*\d+[\.\、\)\]\}]/gm,                           // 1. / 2. / 1）/ 1]
+      /[（\(]\s*\d+\s*[）\)]/g,                            // （1）（2）
+      /Question\s+\d+/gi,                                  // Question 1
+      /Q\s*\d+/gi,                                         // Q1
+      /\d+\s*\./g,                                         // 1. (行首或空格后)
+    ]
+    const seen = new Set<string>()
+    for (const p of patterns) {
+      const matches = t.match(p)
+      if (matches) {
+        matches.forEach((m) => seen.add(m.trim()))
+      }
+    }
+    return seen.size
+  }
+
+  const questionCount = extractQuestionCount(text)
+  console.log(`[AI] 检测到 ${questionCount} 道题目`)
+  if (questionCount < 3 || questionCount > 30) {
+    throw new Error(`识别结果异常，检测到 ${questionCount} 道题目，请检查图片是否完整`)
+  }
+
   const promptTemplate = SUBJECT_PROMPTS[subject] || SUBJECT_PROMPTS.math
   const fullPrompt = `${promptTemplate}\n\n【作业内容】\n${text}\n\n要求：\n1. 必须严格按上述 JSON 格式返回\n2. 只返回 JSON，不要任何解释\n3. 确保 JSON 完整、格式正确\n4. 如果题目很多，优先分析前10题`
 

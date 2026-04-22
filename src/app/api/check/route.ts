@@ -5,6 +5,7 @@ import { generateExercises } from '@/lib/exercises'
 import { dbClient } from '@/lib/db'
 import { verifyToken } from '@/lib/auth'
 import { emitReportGenerated } from '@/lib/marketing'
+import { matchPaper } from '@/lib/paper-index'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,19 +53,30 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // 任务 3: 题库匹配
+    const paperMatch = matchPaper(text)
+    if (!paperMatch.matched) {
+      console.warn(`[题库] 匹配度低 (${paperMatch.confidence})，未识别为已知试卷`)
+    } else {
+      console.log(`[题库] 匹配成功: ${paperMatch.paperName} (置信度 ${paperMatch.confidence})`)
+    }
+
     // 1. AI 学情分析
     const report = await analyzeHomework(text, subject)
     const html = renderReportHTML(report)
 
-    // 2. 根据薄弱点生成个性化练习（Phase 2.1: 传入原始文本做题型锚定）
+    // 2. 根据薄弱点生成个性化练习（Phase 2.1: 传入原始文本做题型锚定；任务2: 难度锚定）
     let exercises = null
     if (generateExerciseSet || report.wrong > 0) {
       try {
+        const sourceDifficulty = report.questions[0]?.difficulty || '基础'
         exercises = await generateExercises(
           report.weakPoints,
           report.moduleScores,
           subject,
-          text // Phase 2.1: 原始文本用于题型锚定
+          text, // Phase 2.1: 原始文本用于题型锚定
+          '小升初',
+          sourceDifficulty // 任务2: 原始试卷难度锚定
         )
       } catch (e) {
         console.error('练习生成失败:', e)
