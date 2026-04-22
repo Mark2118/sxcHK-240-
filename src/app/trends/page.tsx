@@ -137,7 +137,7 @@ export default function TrendsPage() {
               <p className="text-xs text-gray-500">薄弱点追踪</p>
             </div>
           </a>
-          <a href="/xsc/analyze" className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-blue-800">
+          <a href="/analyze" className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-blue-800">
             <ArrowLeft size={16} />
             返回分析
           </a>
@@ -154,7 +154,7 @@ export default function TrendsPage() {
             <p className="text-sm text-gray-500 mb-6 max-w-md mx-auto">
               完成至少 2 次学情分析后，这里会展示薄弱点变化趋势和模块得分曲线
             </p>
-            <a href="/xsc/analyze" className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-900 text-white rounded-xl text-sm font-medium">
+            <a href="/analyze" className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-900 text-white rounded-xl text-sm font-medium">
               <Zap size={16} />
               开始首次分析
             </a>
@@ -312,7 +312,7 @@ export default function TrendsPage() {
             {/* CTA */}
             <div className="flex gap-3">
               <a
-                href="/xsc/analyze"
+                href="/analyze"
                 className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-blue-900 text-white rounded-xl font-medium hover:bg-blue-800 transition-colors"
               >
                 <Zap size={18} />

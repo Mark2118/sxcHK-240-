@@ -753,7 +753,7 @@ export default function AnalyzePage() {
                     </div>
                   </div>
                   <div className="bg-blue-50 rounded-xl p-4 border-l-4 border-blue-800">
-                    <p className="text-sm text-blue-800">💡 完成以上行动后，可在<a href="/xsc/trends" className="underline font-medium">薄弱点追踪</a>页面查看历史趋势。</p>
+                    <p className="text-sm text-blue-800">💡 完成以上行动后，可在<a href="/trends" className="underline font-medium">薄弱点追踪</a>页面查看历史趋势。</p>
                   </div>
                 </div>
               )}
