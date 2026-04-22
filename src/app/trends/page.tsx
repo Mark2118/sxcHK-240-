@@ -100,6 +100,7 @@ export default function TrendsPage() {
               }
             }}
             className="px-5 py-2.5 bg-blue-900 text-white rounded-xl text-sm font-medium"
+          >
             登录
           </button>
         </div>
