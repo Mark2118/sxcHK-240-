@@ -5,7 +5,7 @@ import { dbClient } from '@/lib/db'
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
-  const token = req.cookies.get('auth-token')?.value
+  const token = req.headers.get('authorization')?.replace('Bearer ', '') || req.cookies.get('auth-token')?.value
   if (!token) return NextResponse.json({ error: '未登录' }, { status: 401 })
 
   const payload = await verifyToken(token)

@@ -108,16 +108,16 @@ function ReportContent() {
     if (!data?.report) return []
     const list: string[] = []
     // 1. 薄弱点 → 具体行动
-    data.report.weakPoints.forEach((wp) => {
+    ;(data.report.weakPoints || []).forEach((wp) => {
       list.push(`重点巩固：${wp}`)
     })
     // 2. 错题知识点 → 针对性练习
-    const wrongQuestions = data.report.questions.filter((q) => !q.isCorrect)
+    const wrongQuestions = (data.report.questions || []).filter((q) => !q.isCorrect)
     wrongQuestions.slice(0, 3).forEach((q) => {
       list.push(`重做第${q.no}题：${q.knowledgePoint || '相关知识点'}`)
     })
     // 3. 建议 → 家庭行动
-    data.report.suggestions.slice(0, 2).forEach((sg) => {
+    ;(data.report.suggestions || []).slice(0, 2).forEach((sg) => {
       list.push(sg)
     })
     // 4. 通用行动
@@ -202,7 +202,7 @@ function ReportContent() {
             </div>
             {user && (
               <span className="text-xs text-gray-400">
-                {user.nickname || '用户'} · 剩余 {user.freeUsesLeft ?? 0} 次免费
+                {user?.nickname || '用户'} · 剩余 {user?.freeUsesLeft ?? 0} 次免费
               </span>
             )}
           </div>

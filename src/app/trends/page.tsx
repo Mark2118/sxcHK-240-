@@ -116,7 +116,7 @@ export default function TrendsPage() {
     )
   }
 
-  const trends = data.trends!
+  const trends = data.trends || { totalReports: 0, scoreHistory: [], weakPointStats: [], moduleTrends: {}, knowledgeTimeline: [] }
   const hasData = trends.totalReports > 0
 
   return (
