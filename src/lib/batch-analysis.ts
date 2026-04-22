@@ -42,6 +42,9 @@ export async function analyzeSingleImage(
 
     // 2. 提交批改任务
     const taskId = await submitCorrectTask(base64Data)
+    if (!taskId) {
+      throw new Error('批改服务未返回任务ID')
+    }
 
     // 3. 轮询批改结果（8次×2秒=16秒，3张=48秒，安全）
     const correctResult = await pollCorrectResult(taskId, 8, 2000)

@@ -149,10 +149,15 @@ async function callLLM(prompt: string): Promise<string> {
     }
 
     const data = await res.json()
-    let content = data.choices[0].message.content
+    if (data.error) {
+      throw new Error(`AI 服务错误: ${data.error.message || JSON.stringify(data.error)}`)
+    }
+    const content = data.choices?.[0]?.message?.content
+    if (!content) {
+      throw new Error(`AI 返回格式异常: ${JSON.stringify(data).slice(0, 200)}`)
+    }
     // 去除 MiniMax 思考标签
-    content = content.replace(/<think>[\s\S]*?<\/think>\s*/, '')
-    return content
+    return content.replace(/<think>[\s\S]*?<\/think>\s*/, '')
   } catch (e: any) {
     if (e.name === 'AbortError') throw new Error('AI 分析超时，请稍后重试')
     throw e
@@ -342,7 +347,7 @@ export async function analyzeHomework(
 
   const questionCount = extractQuestionCount(text)
   console.log(`[AI] 检测到 ${questionCount} 道题目`)
-  if (questionCount < 3 || questionCount > 30) {
+  if (questionCount < 1 || questionCount > 30) {
     throw new Error(`识别结果异常，检测到 ${questionCount} 道题目，请检查图片是否完整`)
   }
 

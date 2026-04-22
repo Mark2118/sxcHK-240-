@@ -87,7 +87,11 @@ export async function submitCorrectTask(imageBase64: string): Promise<string> {
     throw new Error(`批改错误: ${data.error_msg} (${data.error_code})`)
   }
 
-  return data.result?.task_id
+  const taskId = data.result?.task_id
+  if (!taskId) {
+    throw new Error(`批改服务未返回任务ID: ${JSON.stringify(data)}`)
+  }
+  return taskId
 }
 
 /** 获取批改结果 */
@@ -121,7 +125,7 @@ export async function getCorrectResult(taskId: string): Promise<CorrectResult | 
   const questions: CorrectQuestion[] = (imageResult.result || []).map((r: any) => ({
     questionId: r.questionId || '',
     question: r.question || '',
-    sequence: r.seqence ?? 0,
+    sequence: r.sequence ?? r.seqence ?? 0,
     questionArea: r.questionArea || [],
     correctResult: r.correctResult ?? 0,
     isFinish: r.isFinish ?? false,

@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   LayoutDashboard, Users, GraduationCap, Settings, LogOut,
   Plus, Trash2, BarChart3, Palette, Camera, Loader2,
-  Building2, School, ChevronRight, X
+  Building2, School, ChevronRight, X, ImagePlus, TrendingUp, AlertTriangle, CheckCircle2
 } from 'lucide-react'
 
 interface Institution {
@@ -51,6 +51,15 @@ export default function BAdminPage() {
   const [classes, setClasses] = useState<ClassItem[]>([])
   const [students, setStudents] = useState<Student[]>([])
   const [toast, setToast] = useState('')
+
+  // 批量分析状态
+  const [batchImages, setBatchImages] = useState<string[]>([])
+  const [batchClassId, setBatchClassId] = useState('')
+  const [batchSubject, setBatchSubject] = useState('math')
+  const [batchLoading, setBatchLoading] = useState(false)
+  const [batchResult, setBatchResult] = useState<any>(null)
+  const [batchHistory, setBatchHistory] = useState<any[]>([])
+  const batchFileRef = useRef<HTMLInputElement>(null)
 
   // 从 localStorage 恢复登录态
   useEffect(() => {
@@ -165,12 +174,19 @@ export default function BAdminPage() {
     if (data.success) setStudents(data.data)
   }, [apiKey, apiSecret])
 
+  const loadBatchHistory = useCallback(async () => {
+    const res = await fetch('/xsc/api/b/batch', { headers: authHeaders() })
+    const data = await res.json()
+    if (data.success) setBatchHistory(data.data)
+  }, [apiKey, apiSecret])
+
   useEffect(() => {
     if (!institution) return
     if (view === 'dashboard') loadDashboard()
     if (view === 'classes') loadClasses()
     if (view === 'students') { loadClasses(); loadStudents() }
-  }, [institution, view, loadDashboard, loadClasses, loadStudents])
+    if (view === 'batch') { loadClasses(); loadBatchHistory() }
+  }, [institution, view, loadDashboard, loadClasses, loadStudents, loadBatchHistory])
 
   // ============ 班级操作 ============
   const [clsForm, setClsForm] = useState({ name: '', grade: 1, subject: 'math' })
@@ -234,6 +250,59 @@ export default function BAdminPage() {
     const data = await res.json()
     if (data.success) { showToast('品牌设置已保存'); fetchMe(apiKey, apiSecret) }
     else showToast('保存失败')
+  }
+
+  // ============ 批量分析操作 ============
+  const handleBatchImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files) return
+    const remaining = 3 - batchImages.length
+    const toProcess = Math.min(files.length, remaining)
+    for (let i = 0; i < toProcess; i++) {
+      const file = files[i]
+      const reader = new FileReader()
+      reader.onload = (ev) => {
+        if (ev.target?.result) {
+          setBatchImages(prev => [...prev, ev.target!.result as string])
+        }
+      }
+      reader.readAsDataURL(file)
+    }
+    if (files.length > remaining) {
+      showToast(`最多上传3张图片，已自动选取前${remaining}张`)
+    }
+    e.target.value = ''
+  }
+
+  const removeBatchImage = (idx: number) => {
+    setBatchImages(prev => prev.filter((_, i) => i !== idx))
+  }
+
+  const submitBatchAnalysis = async () => {
+    if (!batchClassId) return showToast('请选择班级')
+    if (batchImages.length === 0) return showToast('请至少上传1张作业图片')
+    setBatchLoading(true)
+    setBatchResult(null)
+    try {
+      const res = await fetch('/xsc/api/b/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ classId: batchClassId, images: batchImages, subject: batchSubject }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setBatchResult(data.data)
+        setBatchImages([])
+        setBatchClassId('')
+        showToast('批量分析完成')
+        loadBatchHistory()
+      } else {
+        showToast(data.message || '分析失败')
+      }
+    } catch {
+      showToast('网络错误，请重试')
+    }
+    setBatchLoading(false)
   }
 
   // ============ 渲染 ============
@@ -503,25 +572,168 @@ export default function BAdminPage() {
         {view === 'batch' && (
           <div className="space-y-6">
             <h1 className="text-xl font-bold text-gray-900">批量分析</h1>
-            <div className="bg-white rounded-xl border border-gray-100 p-8 text-center">
-              <Camera className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <h2 className="font-semibold text-gray-900 mb-2">批量作业分析</h2>
-              <p className="text-sm text-gray-500 mb-6 max-w-md mx-auto">
-                上传全班作业照片，WinGo 学情引擎将自动进行 OCR 识别、客观批改和学情分析，生成班级学情报告。
-              </p>
-              <div className="flex items-center justify-center gap-3">
-                <select className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm">
-                  <option>选择班级</option>
+
+            {/* 上传区域 */}
+            <div className="bg-white rounded-xl border border-gray-100 p-6">
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                {batchImages.map((img, idx) => (
+                  <div key={idx} className="relative group">
+                    <img src={img} alt={`作业${idx + 1}`} className="w-full h-32 object-cover rounded-lg border border-gray-200" />
+                    <button onClick={() => removeBatchImage(idx)}
+                      className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs">
+                      <X className="w-3 h-3" />
+                    </button>
+                    <div className="text-xs text-gray-500 mt-1 text-center">作业 {idx + 1}</div>
+                  </div>
+                ))}
+                {batchImages.length < 3 && (
+                  <button onClick={() => batchFileRef.current?.click()}
+                    className="h-32 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-blue-900 hover:text-blue-900 transition-colors">
+                    <ImagePlus className="w-6 h-6 mb-1" />
+                    <span className="text-xs">添加图片</span>
+                    <span className="text-[10px] text-gray-300">最多3张</span>
+                  </button>
+                )}
+              </div>
+              <input ref={batchFileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleBatchImageSelect} />
+
+              <div className="flex gap-3">
+                <select value={batchClassId} onChange={e => setBatchClassId(e.target.value)}
+                  className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-900">
+                  <option value="">选择班级</option>
                   {classes.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
-                <button className="px-6 py-3 bg-blue-900 text-white rounded-xl font-medium hover:bg-blue-800 flex items-center gap-2">
-                  <Camera className="w-4 h-4" /> 开始批量分析
+                <select value={batchSubject} onChange={e => setBatchSubject(e.target.value)}
+                  className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-900">
+                  <option value="math">数学</option>
+                  <option value="chinese">语文</option>
+                  <option value="english">英语</option>
+                </select>
+                <button onClick={submitBatchAnalysis} disabled={batchLoading}
+                  className="px-6 py-3 bg-blue-900 text-white rounded-xl font-medium hover:bg-blue-800 disabled:opacity-50 flex items-center gap-2">
+                  {batchLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                  {batchLoading ? '分析中...' : '开始批量分析'}
                 </button>
               </div>
-              <p className="text-xs text-gray-400 mt-4">功能开发中，敬请期待</p>
             </div>
+
+            {/* 分析结果 */}
+            {batchResult && (
+              <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-6">
+                <div className="flex items-center gap-2 text-green-700">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span className="font-semibold">分析完成</span>
+                </div>
+                {/* 汇总卡片 */}
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="bg-blue-50 rounded-xl p-4 text-center">
+                    <div className="text-2xl font-bold text-blue-900">{batchResult.summary?.avgScore ?? 0}</div>
+                    <div className="text-xs text-blue-600 mt-1">班级均分</div>
+                  </div>
+                  <div className="bg-green-50 rounded-xl p-4 text-center">
+                    <div className="text-2xl font-bold text-green-900">{batchResult.completed ?? 0}</div>
+                    <div className="text-xs text-green-600 mt-1">已分析</div>
+                  </div>
+                  <div className="bg-amber-50 rounded-xl p-4 text-center">
+                    <div className="text-2xl font-bold text-amber-900">{batchResult.summary?.classWeakPoints?.length ?? 0}</div>
+                    <div className="text-xs text-amber-600 mt-1">薄弱点</div>
+                  </div>
+                  <div className="bg-purple-50 rounded-xl p-4 text-center">
+                    <div className="text-2xl font-bold text-purple-900">{batchResult.summary?.moduleAvg?.length ?? 0}</div>
+                    <div className="text-xs text-purple-600 mt-1">知识模块</div>
+                  </div>
+                </div>
+                {/* 学生排名 */}
+                {batchResult.summary?.studentRank?.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3">学生排名</h3>
+                    <div className="space-y-2">
+                      {batchResult.summary.studentRank.map((s: any) => (
+                        <div key={s.rank} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${s.rank === 1 ? 'bg-amber-100 text-amber-700' : s.rank === 2 ? 'bg-gray-200 text-gray-700' : s.rank === 3 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-500'}`}>{s.rank}</span>
+                            <span className="text-sm font-medium">{s.name}</span>
+                          </div>
+                          <span className="text-sm font-bold text-gray-900">{s.score}分</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {/* 薄弱点 */}
+                {batchResult.summary?.classWeakPoints?.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-500" /> 班级薄弱点
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {batchResult.summary.classWeakPoints.map((wp: any, i: number) => (
+                        <span key={i} className="px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg text-sm">
+                          {wp.name} <span className="text-amber-400">·</span> {wp.count}次
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {/* 模块分布 */}
+                {batchResult.summary?.moduleAvg?.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-blue-500" /> 知识模块掌握度
+                    </h3>
+                    <div className="space-y-3">
+                      {batchResult.summary.moduleAvg.map((m: any) => (
+                        <div key={m.module}>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span>{m.module}</span>
+                            <span className="font-medium">{m.avgRate}%</span>
+                          </div>
+                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-blue-900 rounded-full transition-all" style={{ width: `${m.avgRate}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 历史记录 */}
+            {batchHistory.length > 0 && (
+              <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-50 font-semibold text-gray-900">分析历史</div>
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="text-left px-6 py-3 text-gray-500 font-medium">时间</th>
+                      <th className="text-left px-6 py-3 text-gray-500 font-medium">班级</th>
+                      <th className="text-left px-6 py-3 text-gray-500 font-medium">状态</th>
+                      <th className="text-left px-6 py-3 text-gray-500 font-medium">进度</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {batchHistory.map(b => {
+                      const cls = classes.find(c => c.id === b.classId)
+                      return (
+                        <tr key={b.id} className="border-t border-gray-50">
+                          <td className="px-6 py-3 text-gray-600">{new Date(b.createdAt).toLocaleString()}</td>
+                          <td className="px-6 py-3 font-medium text-gray-900">{cls?.name || '-'}</td>
+                          <td className="px-6 py-3">
+                            <span className={`px-2 py-0.5 rounded text-xs ${b.status === 'completed' ? 'bg-green-100 text-green-700' : b.status === 'failed' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                              {b.status === 'completed' ? '已完成' : b.status === 'failed' ? '失败' : '处理中'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-3 text-gray-600">{b.completed}/{b.total}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 
