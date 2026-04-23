@@ -325,7 +325,19 @@ export default function AnalyzePage() {
       </header>
 
       <div className="max-w-5xl mx-auto px-4 py-8">
-        {!result?.success ? (
+        {result?.error ? (
+          <div className="max-w-xl mx-auto bg-white rounded-2xl shadow-sm border border-red-100 p-8 text-center">
+            <AlertCircle size={48} className="mx-auto text-red-500 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">分析出错</h3>
+            <p className="text-gray-500 mb-6">{result.error}</p>
+            <button
+              onClick={() => setResult(null)}
+              className="px-6 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-colors"
+            >
+              返回重试
+            </button>
+          </div>
+        ) : !result?.success ? (
           <div className="grid lg:grid-cols-2 gap-8">
             {/* 左侧：输入区 */}
             <div className="space-y-6">
@@ -355,6 +367,17 @@ export default function AnalyzePage() {
                     </button>
                   ))}
                 </div>
+
+                {/* 低置信度警告 */}
+                {(text.match(/\[低置信度\]/g) || []).length > 0 && (
+                  <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
+                    <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+                    <div className="text-sm text-amber-800">
+                      <span className="font-medium">识别质量提示：</span>
+                      检测到 {(text.match(/\[低置信度\]/g) || []).length} 处低置信度内容，分析结果可能受影响。建议重新拍照或手动修正后再分析。
+                    </div>
+                  </div>
+                )}
 
                 {/* 图片上传 */}
                 <div
@@ -502,18 +525,6 @@ export default function AnalyzePage() {
                 </div>
               </div>
             </div>
-          </div>
-        ) : result.error ? (
-          <div className="max-w-xl mx-auto bg-white rounded-2xl shadow-sm border border-red-100 p-8 text-center">
-            <AlertCircle size={48} className="mx-auto text-red-500 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">分析出错</h3>
-            <p className="text-gray-500 mb-6">{result.error}</p>
-            <button
-              onClick={() => setResult(null)}
-              className="px-6 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-colors"
-            >
-              返回重试
-            </button>
           </div>
         ) : (
           <div className="space-y-6">

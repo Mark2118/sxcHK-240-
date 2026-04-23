@@ -4,7 +4,7 @@ import { renderReportHTML } from '@/lib/report'
 import { generateExercises } from '@/lib/exercises'
 import { dbClient } from '@/lib/db'
 import { verifyToken } from '@/lib/auth'
-import { emitReportGenerated } from '@/lib/marketing'
+import { emitReportGenerated, emitFreeQuotaExhausted } from '@/lib/marketing'
 import { matchPaper } from '@/lib/paper-index'
 
 export const dynamic = 'force-dynamic'
@@ -31,17 +31,10 @@ export async function POST(req: NextRequest) {
 
     const userId = payload.userId as string
 
-    // Phase 2.2: 人工复核节点 — 低置信度检查
-    if (text.includes('[低置信度]')) {
-      const lowConfCount = (text.match(/\[低置信度\]/g) || []).length
-      return NextResponse.json({
-        success: false,
-        code: 'NEED_REVIEW',
-        error: `识别质量不足，发现 ${lowConfCount} 处低置信度内容`,
-        detail: '建议重新拍照（光线充足、避免手抖）或手动输入作业内容',
-        suggestion: '如需继续分析，可点击「仍要分析」忽略此警告',
-        canProceed: true,
-      }, { status: 422 })
+    // 记录低置信度内容数量（仅日志，不拦截）
+    const lowConfCount = (text.match(/\[低置信度\]/g) || []).length
+    if (lowConfCount > 0) {
+      console.log(`[check] 用户 ${userId} 提交的内容包含 ${lowConfCount} 处低置信度标记，继续分析`)
     }
 
     // 检查使用限额
@@ -83,6 +76,14 @@ export async function POST(req: NextRequest) {
     // 3. 扣减免费次数（仅限免费用户）
     if (limitCheck.type === 'free') {
       dbClient.userLimits.decrementFree(userId)
+      // 检查额度是否已用完
+      const updatedLimit = dbClient.userLimits.findByUserId(userId)
+      if (updatedLimit && updatedLimit.freeCount <= 0) {
+        const user = dbClient.users.findById(userId)
+        if (user) {
+          emitFreeQuotaExhausted(userId, user.openid)
+        }
+      }
     }
 
     // 4. 持久化到 SQLite
@@ -101,6 +102,8 @@ export async function POST(req: NextRequest) {
         exercisesJson: exercises ? JSON.stringify(exercises) : undefined,
       })
       reportId = record.id
+      // 授予用户访问权限
+      dbClient.userReportAccess.grantAccess(userId, record.id)
 
       // 5. 触发营销事件
       const user = dbClient.users.findById(userId)

@@ -314,8 +314,9 @@ export async function analyzeHomework(
   subject: string = 'math'
 ): Promise<CheckReport> {
   // Phase 1: 输入异常检查
+  // [低置信度] 标记已在 check API 层处理，此处仅做日志
   if (text.includes('[低置信度]')) {
-    throw new Error('识别质量不足，包含低置信度内容，建议重新拍照或人工确认')
+    console.log('[analyzeHomework] 文本包含低置信度标记，继续分析')
   }
   if (!text || text.trim().length < 10) {
     throw new Error('作业内容过短，无法进行分析')

@@ -1,0 +1,342 @@
+{
+  "name": "XSC User Register Welcome",
+  "nodes": [
+    {
+      "id": "webhook-user-register",
+      "name": "Webhook User Register",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "user-register",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "user-register",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "respond-ok-1",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [450, 100],
+      "parameters": {
+        "options": {},
+        "respondWith": "json",
+        "responseBody": "=OK"
+      }
+    },
+    {
+      "id": "get-wechat-token-welcome",
+      "name": "Get WeChat Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={{$env.WECHAT_APP_ID}}&secret={{$env.WECHAT_APP_SECRET}}",
+        "sendBody": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "send-welcome-msg",
+      "name": "Send Welcome Msg",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={{ $json.access_token }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"touser\":\"{{ $('Webhook User Register').item.json.openid }}\",\"template_id\":\"{{$env.WECHAT_TEMPLATE_ID}}\",\"url\":\"https://edu.wingo.icu\",\"data\":{\"first\":{\"value\":\"欢迎加入 WinGo 学情管家！\",\"color\":\"#173177\"},\"keyword1\":{\"value\":\"前3次分析完全免费\",\"color\":\"#333333\"},\"keyword2\":{\"value\":\"拍一拍作业，15秒看懂孩子学得怎么样\",\"color\":\"#333333\"},\"remark\":{\"value\":\"👉 点这里开始体验\",\"color\":\"#fa9d3b\"}}}",
+        "options": {}
+      }
+    },
+    {
+      "id": "wait-3-days",
+      "name": "Wait 3 Days",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [850, 300],
+      "webhookId": "user-register-wait-3d",
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 3,
+        "unit": "days",
+        "options": {}
+      }
+    },
+    {
+      "id": "get-token-day3",
+      "name": "Get Token Day3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={{$env.WECHAT_APP_ID}}&secret={{$env.WECHAT_APP_SECRET}}",
+        "sendBody": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "send-guide-msg",
+      "name": "Send Guide Msg",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1250, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={{ $json.access_token }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"touser\":\"{{ $('Webhook User Register').item.json.openid }}\",\"template_id\":\"{{$env.WECHAT_TEMPLATE_ID}}\",\"url\":\"https://edu.wingo.icu\",\"data\":{\"first\":{\"value\":\"还没用过？3分钟教你看懂学情报告\",\"color\":\"#173177\"},\"keyword1\":{\"value\":\"第一次使用指南\",\"color\":\"#333333\"},\"keyword2\":{\"value\":\"图文教程已准备好\",\"color\":\"#333333\"},\"remark\":{\"value\":\"👉 点这里查看教程\",\"color\":\"#fa9d3b\"}}}",
+        "options": {}
+      }
+    },
+    {
+      "id": "wait-7-days",
+      "name": "Wait 7 Days Total",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1450, 300],
+      "webhookId": "user-register-wait-7d",
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 4,
+        "unit": "days",
+        "options": {}
+      }
+    },
+    {
+      "id": "check-used",
+      "name": "Check If Used",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1650, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-1",
+              "leftValue": "={{ $('Webhook User Register').item.json.hasUsed || false }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals",
+                "rightValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "get-token-day7",
+      "name": "Get Token Day7",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1850, 200],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={{$env.WECHAT_APP_ID}}&secret={{$env.WECHAT_APP_SECRET}}",
+        "sendBody": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "send-bonus-msg",
+      "name": "Send Bonus Msg",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [2050, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={{ $json.access_token }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"touser\":\"{{ $('Webhook User Register').item.json.openid }}\",\"template_id\":\"{{$env.WECHAT_TEMPLATE_ID}}\",\"url\":\"https://edu.wingo.icu\",\"data\":{\"first\":{\"value\":\"限时福利：再送你2次免费分析！\",\"color\":\"#173177\"},\"keyword1\":{\"value\":\"2次免费分析机会\",\"color\":\"#333333\"},\"keyword2\":{\"value\":\"试试看，体验 WinGo 学情管家\",\"color\":\"#333333\"},\"remark\":{\"value\":\"👉 点这里开始使用\",\"color\":\"#fa9d3b\"}}}",
+        "options": {}
+      }
+    },
+    {
+      "id": "wait-14-days",
+      "name": "Wait 14 Days Total",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [2050, 400],
+      "webhookId": "user-register-wait-14d",
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 7,
+        "unit": "days",
+        "options": {}
+      }
+    },
+    {
+      "id": "check-paid",
+      "name": "Check If Paid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2250, 400],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-1",
+              "leftValue": "={{ $('Webhook User Register').item.json.hasPaid || false }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals",
+                "rightValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "get-token-day14",
+      "name": "Get Token Day14",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [2450, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={{$env.WECHAT_APP_ID}}&secret={{$env.WECHAT_APP_SECRET}}",
+        "sendBody": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "send-case-msg",
+      "name": "Send Case Msg",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [2650, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={{ $json.access_token }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"touser\":\"{{ $('Webhook User Register').item.json.openid }}\",\"template_id\":\"{{$env.WECHAT_TEMPLATE_ID}}\",\"url\":\"https://edu.wingo.icu\",\"data\":{\"first\":{\"value\":\"看看其他家长怎么用 WinGo 帮孩子提升的\",\"color\":\"#173177\"},\"keyword1\":{\"value\":\"案例分享\",\"color\":\"#333333\"},\"keyword2\":{\"value\":\"真实用户反馈与效果\",\"color\":\"#333333\"},\"remark\":{\"value\":\"👉 点这里查看案例\",\"color\":\"#fa9d3b\"}}}",
+        "options": {}
+      }
+    },
+    {
+      "id": "feishu-notify-welcome",
+      "name": "Feishu Notify Welcome",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 500],
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.feishu.cn/open-apis/bot/v2/hook/7c7bb761-fac1-49f3-a52f-4e74d77c569d",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"msg_type\":\"text\",\"content\":{\"text\":\"🎉 新用户注册欢迎流程触发\\n\\nOpenID：{{ $('Webhook User Register').item.json.openid }}\\n时间：{{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}\\n\\n已发送欢迎消息，后续将在3天/7天/14天自动跟进。\"}}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Webhook User Register": {
+      "main": [
+        [
+          { "node": "Respond OK", "type": "main", "index": 0 },
+          { "node": "Get WeChat Token", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Get WeChat Token": {
+      "main": [
+        [{ "node": "Send Welcome Msg", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Welcome Msg": {
+      "main": [
+        [{ "node": "Wait 3 Days", "type": "main", "index": 0 }]
+      ]
+    },
+    "Wait 3 Days": {
+      "main": [
+        [{ "node": "Get Token Day3", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Token Day3": {
+      "main": [
+        [{ "node": "Send Guide Msg", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Guide Msg": {
+      "main": [
+        [{ "node": "Wait 7 Days Total", "type": "main", "index": 0 }]
+      ]
+    },
+    "Wait 7 Days Total": {
+      "main": [
+        [{ "node": "Check If Used", "type": "main", "index": 0 }]
+      ]
+    },
+    "Check If Used": {
+      "main": [
+        [{ "node": "Get Token Day7", "type": "main", "index": 0 }],
+        [{ "node": "Wait 14 Days Total", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Token Day7": {
+      "main": [
+        [{ "node": "Send Bonus Msg", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Bonus Msg": {
+      "main": [
+        [{ "node": "Wait 14 Days Total", "type": "main", "index": 0 }]
+      ]
+    },
+    "Wait 14 Days Total": {
+      "main": [
+        [{ "node": "Check If Paid", "type": "main", "index": 0 }]
+      ]
+    },
+    "Check If Paid": {
+      "main": [
+        [{ "node": "Get Token Day14", "type": "main", "index": 0 }],
+        [{ "node": "Feishu Notify Welcome", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Token Day14": {
+      "main": [
+        [{ "node": "Send Case Msg", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Case Msg": {
+      "main": [
+        [{ "node": "Feishu Notify Welcome", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "",
+    "timezone": "Asia/Shanghai"
+  },
+  "staticData": null,
+  "tags": []
+}

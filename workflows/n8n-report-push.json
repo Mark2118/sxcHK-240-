@@ -1,0 +1,211 @@
+{
+  "name": "XSC Report Push",
+  "nodes": [
+    {
+      "id": "webhook-report-ready",
+      "name": "Webhook Report Ready",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "report-ready",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "report-ready",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "respond-ok-2",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [450, 100],
+      "parameters": {
+        "options": {},
+        "respondWith": "json",
+        "responseBody": "=OK"
+      }
+    },
+    {
+      "id": "check-user-type",
+      "name": "Check User Type",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-1",
+              "leftValue": "={{ $('Webhook Report Ready').item.json.userType || 'c' }}",
+              "rightValue": "b",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "get-token-c",
+      "name": "Get WeChat Token C",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 200],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={{$env.WECHAT_APP_ID}}&secret={{$env.WECHAT_APP_SECRET}}",
+        "sendBody": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "send-report-c",
+      "name": "Send Report C",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={{ $json.access_token }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"touser\":\"{{ $('Webhook Report Ready').item.json.openid }}\",\"template_id\":\"{{$env.WECHAT_TEMPLATE_MSG_ID}}\",\"url\":\"https://edu.wingo.icu/xsc/report?id={{ $('Webhook Report Ready').item.json.reportId }}\",\"data\":{\"first\":{\"value\":\"您孩子的学情报告已生成！\",\"color\":\"#173177\"},\"keyword1\":{\"value\":\"{{ $('Webhook Report Ready').item.json.subject === 'math' ? '数学学情分析' : ($('Webhook Report Ready').item.json.subject === 'chinese' ? '语文学情分析' : '英语学情分析') }}\",\"color\":\"#333333\"},\"keyword2\":{\"value\":\"{{ $('Webhook Report Ready').item.json.childName || '您的孩子' }}\",\"color\":\"#333333\"},\"keyword3\":{\"value\":\"{{ $('Webhook Report Ready').item.json.score }}分\",\"color\":\"#333333\"},\"keyword4\":{\"value\":\"{{ $('Webhook Report Ready').item.json.accuracy }}%\",\"color\":\"#333333\"},\"keyword5\":{\"value\":\"{{ $('Webhook Report Ready').item.json.timestamp || $now.toFormat('yyyy-MM-dd HH:mm') }}\",\"color\":\"#333333\"},\"remark\":{\"value\":\"薄弱点：{{ $('Webhook Report Ready').item.json.weakPoint || '点击查看' }}\\n点击查看完整报告 + 今晚行动清单 →\",\"color\":\"#fa9d3b\"}}}",
+        "options": {}
+      }
+    },
+    {
+      "id": "get-token-b-parent",
+      "name": "Get Token B Parent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 400],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={{$env.WECHAT_APP_ID}}&secret={{$env.WECHAT_APP_SECRET}}",
+        "sendBody": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "send-report-b-parent",
+      "name": "Send Report B Parent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={{ $json.access_token }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"touser\":\"{{ $('Webhook Report Ready').item.json.openid }}\",\"template_id\":\"{{$env.WECHAT_TEMPLATE_MSG_ID}}\",\"url\":\"https://edu.wingo.icu/xsc/report?id={{ $('Webhook Report Ready').item.json.reportId }}\",\"data\":{\"first\":{\"value\":\"【{{ $('Webhook Report Ready').item.json.institutionName || '机构' }}】学情报告已生成\",\"color\":\"#173177\"},\"keyword1\":{\"value\":\"{{ $('Webhook Report Ready').item.json.subject === 'math' ? '数学学情分析' : ($('Webhook Report Ready').item.json.subject === 'chinese' ? '语文学情分析' : '英语学情分析') }}\",\"color\":\"#333333\"},\"keyword2\":{\"value\":\"{{ $('Webhook Report Ready').item.json.childName || '您的孩子' }}\",\"color\":\"#333333\"},\"keyword3\":{\"value\":\"{{ $('Webhook Report Ready').item.json.score }}分\",\"color\":\"#333333\"},\"keyword4\":{\"value\":\"{{ $('Webhook Report Ready').item.json.accuracy }}%\",\"color\":\"#333333\"},\"keyword5\":{\"value\":\"{{ $('Webhook Report Ready').item.json.timestamp || $now.toFormat('yyyy-MM-dd HH:mm') }}\",\"color\":\"#333333\"},\"remark\":{\"value\":\"点击查看个人完整报告 →\",\"color\":\"#fa9d3b\"}}}",
+        "options": {}
+      }
+    },
+    {
+      "id": "get-token-b-admin",
+      "name": "Get Token B Admin",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 400],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={{$env.WECHAT_APP_ID}}&secret={{$env.WECHAT_APP_SECRET}}",
+        "sendBody": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "send-report-b-admin",
+      "name": "Send Report B Admin",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1250, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={{ $json.access_token }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"touser\":\"{{ $('Webhook Report Ready').item.json.adminOpenid }}\",\"template_id\":\"{{$env.WECHAT_TEMPLATE_ID}}\",\"url\":\"https://edu.wingo.icu/xsc/b-admin\",\"data\":{\"first\":{\"value\":\"【班级汇总】新报告已生成\",\"color\":\"#173177\"},\"keyword1\":{\"value\":\"{{ $('Webhook Report Ready').item.json.className || '班级' }} 学情简报\",\"color\":\"#333333\"},\"keyword2\":{\"value\":\"共 {{ $('Webhook Report Ready').item.json.reportCount || 1 }} 份报告\",\"color\":\"#333333\"},\"remark\":{\"value\":\"点击查看班级汇总 →\",\"color\":\"#fa9d3b\"}}}",
+        "options": {}
+      }
+    },
+    {
+      "id": "feishu-notify-report",
+      "name": "Feishu Notify Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 600],
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.feishu.cn/open-apis/bot/v2/hook/7c7bb761-fac1-49f3-a52f-4e74d77c569d",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"msg_type\":\"text\",\"content\":{\"text\":\"📊 报告生成推送完成\\n\\n用户类型：{{ $('Webhook Report Ready').item.json.userType === 'b' ? 'B端机构' : 'C端家长' }}\\nOpenID：{{ $('Webhook Report Ready').item.json.openid }}\\n报告ID：{{ $('Webhook Report Ready').item.json.reportId }}\\n分数：{{ $('Webhook Report Ready').item.json.score }}分 / 正确率：{{ $('Webhook Report Ready').item.json.accuracy }}%\\n时间：{{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}\"}}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Report Ready": {
+      "main": [
+        [
+          { "node": "Respond OK", "type": "main", "index": 0 },
+          { "node": "Check User Type", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Check User Type": {
+      "main": [
+        [{ "node": "Get WeChat Token C", "type": "main", "index": 0 }],
+        [{ "node": "Get Token B Parent", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get WeChat Token C": {
+      "main": [
+        [{ "node": "Send Report C", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Report C": {
+      "main": [
+        [{ "node": "Feishu Notify Report", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Token B Parent": {
+      "main": [
+        [{ "node": "Send Report B Parent", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Report B Parent": {
+      "main": [
+        [{ "node": "Get Token B Admin", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Token B Admin": {
+      "main": [
+        [{ "node": "Send Report B Admin", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Report B Admin": {
+      "main": [
+        [{ "node": "Feishu Notify Report", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "",
+    "timezone": "Asia/Shanghai"
+  },
+  "staticData": null,
+  "tags": []
+}

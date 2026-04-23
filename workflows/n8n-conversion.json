@@ -1,0 +1,466 @@
+{
+  "name": "XSC Paid Conversion",
+  "nodes": [
+    {
+      "id": "webhook-limit-exceeded",
+      "name": "Webhook Limit Exceeded",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "limit-exceeded",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "limit-exceeded",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "respond-ok-3",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [450, 100],
+      "parameters": {
+        "options": {},
+        "respondWith": "json",
+        "responseBody": "=OK"
+      }
+    },
+    {
+      "id": "get-token-immediate",
+      "name": "Get Token Immediate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={{$env.WECHAT_APP_ID}}&secret={{$env.WECHAT_APP_SECRET}}",
+        "sendBody": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "send-limit-msg",
+      "name": "Send Limit Msg",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={{ $json.access_token }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"touser\":\"{{ $('Webhook Limit Exceeded').item.json.openid }}\",\"template_id\":\"{{$env.WECHAT_TEMPLATE_ID}}\",\"url\":\"https://edu.wingo.icu/xsc/pricing\",\"data\":{\"first\":{\"value\":\"本月免费额度已用完，您的最新报告已生成\",\"color\":\"#173177\"},\"keyword1\":{\"value\":\"月卡 ¥39（100次）/ 年卡 ¥299（300次）\",\"color\":\"#333333\"},\"keyword2\":{\"value\":\"每天只要8毛钱，全年管家服务\",\"color\":\"#333333\"},\"remark\":{\"value\":\"👉 解锁查看 → 立即开通会员\",\"color\":\"#fa9d3b\"}}}",
+        "options": {}
+      }
+    },
+    {
+      "id": "wait-2-hours",
+      "name": "Wait 2 Hours",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [850, 300],
+      "webhookId": "conversion-wait-2h",
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 2,
+        "unit": "hours",
+        "options": {}
+      }
+    },
+    {
+      "id": "check-paid-2h",
+      "name": "Check Paid 2h",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1050, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-1",
+              "leftValue": "={{ $('Webhook Limit Exceeded').item.json.hasPaid || false }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals",
+                "rightValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "get-token-preview",
+      "name": "Get Token Preview",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1250, 200],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={{$env.WECHAT_APP_ID}}&secret={{$env.WECHAT_APP_SECRET}}",
+        "sendBody": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "send-preview-msg",
+      "name": "Send Preview Msg",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1450, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={{ $json.access_token }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"touser\":\"{{ $('Webhook Limit Exceeded').item.json.openid }}\",\"template_id\":\"{{$env.WECHAT_TEMPLATE_ID}}\",\"url\":\"https://edu.wingo.icu/xsc/pricing\",\"data\":{\"first\":{\"value\":\"报告预览：行程问题已出现5次\",\"color\":\"#173177\"},\"keyword1\":{\"value\":\"今晚该练什么？\",\"color\":\"#333333\"},\"keyword2\":{\"value\":\"解锁查看完整报告与行动清单\",\"color\":\"#333333\"},\"remark\":{\"value\":\"👉 点击解锁查看 →\",\"color\":\"#fa9d3b\"}}}",
+        "options": {}
+      }
+    },
+    {
+      "id": "wait-24-hours",
+      "name": "Wait 24 Hours",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1450, 400],
+      "webhookId": "conversion-wait-24h",
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 22,
+        "unit": "hours",
+        "options": {}
+      }
+    },
+    {
+      "id": "check-paid-24h",
+      "name": "Check Paid 24h",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1650, 400],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-1",
+              "leftValue": "={{ $('Webhook Limit Exceeded').item.json.hasPaid || false }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals",
+                "rightValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "get-token-discount",
+      "name": "Get Token Discount",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1850, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={{$env.WECHAT_APP_ID}}&secret={{$env.WECHAT_APP_SECRET}}",
+        "sendBody": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "send-discount-msg",
+      "name": "Send Discount Msg",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [2050, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={{ $json.access_token }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"touser\":\"{{ $('Webhook Limit Exceeded').item.json.openid }}\",\"template_id\":\"{{$env.WECHAT_TEMPLATE_ID}}\",\"url\":\"https://edu.wingo.icu/xsc/pricing\",\"data\":{\"first\":{\"value\":\"今日特惠：年卡立减¥30，仅¥269！\",\"color\":\"#173177\"},\"keyword1\":{\"value\":\"限时7折优惠\",\"color\":\"#333333\"},\"keyword2\":{\"value\":\"今天24:00前有效\",\"color\":\"#333333\"},\"remark\":{\"value\":\"👉 立即抢购 →\",\"color\":\"#fa9d3b\"}}}",
+        "options": {}
+      }
+    },
+    {
+      "id": "wait-48-hours",
+      "name": "Wait 48 Hours Total",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [2050, 500],
+      "webhookId": "conversion-wait-48h",
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 24,
+        "unit": "hours",
+        "options": {}
+      }
+    },
+    {
+      "id": "check-paid-48h",
+      "name": "Check Paid 48h",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2250, 500],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-1",
+              "leftValue": "={{ $('Webhook Limit Exceeded').item.json.hasPaid || false }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals",
+                "rightValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "get-token-free",
+      "name": "Get Token Free",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [2450, 400],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={{$env.WECHAT_APP_ID}}&secret={{$env.WECHAT_APP_SECRET}}",
+        "sendBody": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "send-free-msg",
+      "name": "Send Free Msg",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [2650, 400],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={{ $json.access_token }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"touser\":\"{{ $('Webhook Limit Exceeded').item.json.openid }}\",\"template_id\":\"{{$env.WECHAT_TEMPLATE_ID}}\",\"url\":\"https://edu.wingo.icu/xsc/pricing\",\"data\":{\"first\":{\"value\":\"再给你2次免费分析，体验完再决定！\",\"color\":\"#173177\"},\"keyword1\":{\"value\":\"免费再送2次\",\"color\":\"#333333\"},\"keyword2\":{\"value\":\"体验 WinGo 完整功能\",\"color\":\"#333333\"},\"remark\":{\"value\":\"👉 立即使用 →\",\"color\":\"#fa9d3b\"}}}",
+        "options": {}
+      }
+    },
+    {
+      "id": "wait-7-days",
+      "name": "Wait 7 Days Total",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [2650, 600],
+      "webhookId": "conversion-wait-7d",
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 5,
+        "unit": "days",
+        "options": {}
+      }
+    },
+    {
+      "id": "check-paid-7d",
+      "name": "Check Paid 7d",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2850, 600],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-1",
+              "leftValue": "={{ $('Webhook Limit Exceeded').item.json.hasPaid || false }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals",
+                "rightValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "mark-high-intent",
+      "name": "Mark High Intent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [3050, 500],
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:3000/xsc/api/webhook/mark-high-intent?key=xsc-admin-2026",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"openid\":\"{{ $('Webhook Limit Exceeded').item.json.openid }}\",\"source\":\"conversion_flow\",\"stage\":\"7d_no_pay\",\"timestamp\":\"{{ $now.toISO() }}\"}",
+        "options": {}
+      }
+    },
+    {
+      "id": "feishu-notify-conversion",
+      "name": "Feishu Notify Conversion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 700],
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.feishu.cn/open-apis/bot/v2/hook/7c7bb761-fac1-49f3-a52f-4e74d77c569d",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"msg_type\":\"text\",\"content\":{\"text\":\"⚠️ 付费转化流程触发\\n\\nOpenID：{{ $('Webhook Limit Exceeded').item.json.openid }}\\n时间：{{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}\\n\\n已发送额度用完提醒，后续将在2h/24h/48h/7d自动跟进。\"}}",
+        "options": {}
+      }
+    },
+    {
+      "id": "feishu-high-intent",
+      "name": "Feishu High Intent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [3050, 700],
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.feishu.cn/open-apis/bot/v2/hook/7c7bb761-fac1-49f3-a52f-4e74d77c569d",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"msg_type\":\"text\",\"content\":{\"text\":\"🔥 高意向沉默用户标记\\n\\nOpenID：{{ $('Webhook Limit Exceeded').item.json.openid }}\\n阶段：7天未付费\\n建议：人工销售介入\\n时间：{{ $now.toFormat('yyyy-MM-dd HH:mm:ss') }}\"}}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Limit Exceeded": {
+      "main": [
+        [
+          { "node": "Respond OK", "type": "main", "index": 0 },
+          { "node": "Get Token Immediate", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Get Token Immediate": {
+      "main": [
+        [{ "node": "Send Limit Msg", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Limit Msg": {
+      "main": [
+        [{ "node": "Wait 2 Hours", "type": "main", "index": 0 }]
+      ]
+    },
+    "Wait 2 Hours": {
+      "main": [
+        [{ "node": "Check Paid 2h", "type": "main", "index": 0 }]
+      ]
+    },
+    "Check Paid 2h": {
+      "main": [
+        [{ "node": "Get Token Preview", "type": "main", "index": 0 }],
+        [{ "node": "Feishu Notify Conversion", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Token Preview": {
+      "main": [
+        [{ "node": "Send Preview Msg", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Preview Msg": {
+      "main": [
+        [{ "node": "Wait 24 Hours", "type": "main", "index": 0 }]
+      ]
+    },
+    "Wait 24 Hours": {
+      "main": [
+        [{ "node": "Check Paid 24h", "type": "main", "index": 0 }]
+      ]
+    },
+    "Check Paid 24h": {
+      "main": [
+        [{ "node": "Get Token Discount", "type": "main", "index": 0 }],
+        [{ "node": "Wait 48 Hours Total", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Token Discount": {
+      "main": [
+        [{ "node": "Send Discount Msg", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Discount Msg": {
+      "main": [
+        [{ "node": "Wait 48 Hours Total", "type": "main", "index": 0 }]
+      ]
+    },
+    "Wait 48 Hours Total": {
+      "main": [
+        [{ "node": "Check Paid 48h", "type": "main", "index": 0 }]
+      ]
+    },
+    "Check Paid 48h": {
+      "main": [
+        [{ "node": "Get Token Free", "type": "main", "index": 0 }],
+        [{ "node": "Wait 7 Days Total", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Token Free": {
+      "main": [
+        [{ "node": "Send Free Msg", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Free Msg": {
+      "main": [
+        [{ "node": "Wait 7 Days Total", "type": "main", "index": 0 }]
+      ]
+    },
+    "Wait 7 Days Total": {
+      "main": [
+        [{ "node": "Check Paid 7d", "type": "main", "index": 0 }]
+      ]
+    },
+    "Check Paid 7d": {
+      "main": [
+        [{ "node": "Mark High Intent", "type": "main", "index": 0 }],
+        [{ "node": "Feishu High Intent", "type": "main", "index": 0 }]
+      ]
+    },
+    "Mark High Intent": {
+      "main": [
+        [{ "node": "Feishu High Intent", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "",
+    "timezone": "Asia/Shanghai"
+  },
+  "staticData": null,
+  "tags": []
+}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { dbClient } from '@/lib/db'
 import { createToken } from '@/lib/auth'
+import { emitUserRegistered } from '@/lib/marketing'
 
 const APP_ID = process.env.WECHAT_APP_ID
 const APP_SECRET = process.env.WECHAT_APP_SECRET
@@ -59,13 +60,20 @@ export async function GET(req: NextRequest) {
 
     // 3. 查找或创建用户
     let user = dbClient.users.findByOpenid(openid)
+    let isNewUser = false
     if (!user) {
       user = dbClient.users.create(openid, userInfo.unionid, userInfo.nickname, userInfo.headimgurl)
+      isNewUser = true
     } else {
       dbClient.users.update(user.id, {
         nickname: userInfo.nickname,
         avatar: userInfo.headimgurl,
       })
+    }
+
+    // 触发新用户注册事件
+    if (isNewUser) {
+      emitUserRegistered(user.id, user.openid, userInfo.nickname)
     }
 
     // 4. 生成 JWT

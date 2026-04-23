@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   LayoutDashboard, Users, GraduationCap, Settings, LogOut,
   Plus, Trash2, BarChart3, Palette, Camera, Loader2,
-  Building2, School, ChevronRight, X, ImagePlus, TrendingUp, AlertTriangle, CheckCircle2
+  Building2, School, ChevronRight, X, ImagePlus, TrendingUp, AlertTriangle, CheckCircle2, Zap
 } from 'lucide-react'
 
 interface Institution {
@@ -330,6 +330,35 @@ export default function BAdminPage() {
                 className="w-full py-3 bg-blue-900 text-white rounded-xl font-medium hover:bg-blue-800 disabled:opacity-50 flex items-center justify-center gap-2">
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : '登录'}
               </button>
+              {process.env.NODE_ENV === 'development' && (
+                <button onClick={async () => {
+                  setLoading(true)
+                  try {
+                    const res = await fetch('/xsc/api/b/institution', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ name: '演示机构', type: 'training', contact: '演示', phone: '13800000000' }),
+                    })
+                    const data = await res.json()
+                    if (data.success) {
+                      setApiKey(data.data.apiKey)
+                      setApiSecret(data.data.apiSecret)
+                      setInstitution(data.data)
+                      localStorage.setItem('b_api_key', data.data.apiKey)
+                      localStorage.setItem('b_api_secret', data.data.apiSecret)
+                      showToast('演示登录成功')
+                    } else {
+                      showToast(data.message || '演示登录失败')
+                    }
+                  } catch {
+                    showToast('网络错误')
+                  }
+                  setLoading(false)
+                }} disabled={loading}
+                  className="w-full py-3 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2">
+                  <Zap className="w-4 h-4" /> 开发演示登录（免密）
+                </button>
+              )}
             </div>
           </div>
 

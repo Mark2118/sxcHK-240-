@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Loader2, CheckCircle, AlertCircle, BarChart3, ArrowLeft, Share2, Clock, Target, Lightbulb, ChevronRight } from 'lucide-react'
+import { Loader2, CheckCircle, AlertCircle, BarChart3, ArrowLeft, Share2, Clock, Target, Lightbulb, ChevronRight, FileDown } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 
 interface ReportData {
@@ -68,6 +68,7 @@ function ReportContent() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'overview' | 'action' | 'detail' | 'exercises' | 'html'>('overview')
   const [shareToast, setShareToast] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     if (!reportId) {
@@ -100,6 +101,40 @@ function ReportContent() {
       setTimeout(() => setShareToast(false), 2000)
     } catch {
       // fallback
+    }
+  }
+
+  const handleExportPDF = async () => {
+    if (!reportId || !token) return
+    setExporting(true)
+    try {
+      const res = await fetch('/xsc/api/report/pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ reportId, type: 'report' }),
+      })
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}))
+        alert(json.error || '导出失败')
+        return
+      }
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const filename = res.headers.get('content-disposition')?.match(/filename="([^"]+)"/)?.[1] || 'WinGo学情分析报告.pdf'
+      a.download = decodeURIComponent(filename)
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (e) {
+      alert('导出失败，请重试')
+    } finally {
+      setExporting(false)
     }
   }
 
@@ -495,6 +530,14 @@ function ReportContent() {
             <Target size={18} />
             薄弱点追踪
           </a>
+          <button
+            onClick={handleExportPDF}
+            disabled={exporting}
+            className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-white border border-gray-200 text-gray-800 rounded-xl font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {exporting ? <Loader2 size={18} className="animate-spin" /> : <FileDown size={18} />}
+            {exporting ? '导出中...' : '导出 PDF'}
+          </button>
         </div>
 
         {/* 免责声明 */}

@@ -144,9 +144,37 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id);
   CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
   CREATE INDEX IF NOT EXISTS idx_user_report_access_user_id ON user_report_access(user_id);
+  CREATE TABLE IF NOT EXISTS referrals (
+    id TEXT PRIMARY KEY,
+    code TEXT UNIQUE NOT NULL,
+    inviter_id TEXT NOT NULL,
+    invitee_id TEXT,
+    created_at TEXT NOT NULL,
+    claimed_at TEXT,
+    FOREIGN KEY (inviter_id) REFERENCES users(id),
+    FOREIGN KEY (invitee_id) REFERENCES users(id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_referrals_code ON referrals(code);
+  CREATE INDEX IF NOT EXISTS idx_referrals_inviter ON referrals(inviter_id);
   CREATE INDEX IF NOT EXISTS idx_institutions_api_key ON institutions(api_key);
   CREATE INDEX IF NOT EXISTS idx_classes_institution ON classes(institution_id);
   CREATE INDEX IF NOT EXISTS idx_students_institution_class ON students(institution_id, class_id);
+
+  CREATE TABLE IF NOT EXISTS consultations (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    question TEXT NOT NULL,
+    answer TEXT,
+    level TEXT NOT NULL,
+    lead_score INTEGER DEFAULT 1,
+    status TEXT DEFAULT 'open',
+    created_at TEXT NOT NULL,
+    follow_up_at TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  );
+  CREATE INDEX IF NOT EXISTS idx_consultations_user_id ON consultations(user_id);
+  CREATE INDEX IF NOT EXISTS idx_consultations_created_at ON consultations(created_at DESC);
 `)
 
 // 兼容旧表迁移（幂等性处理，防止 Next.js 构建多 worker 并发导致 duplicate column）
@@ -276,6 +304,15 @@ export interface BatchAnalysisRecord {
   results?: string
   createdAt: string
   completedAt?: string
+}
+
+export interface ReferralRecord {
+  id: string
+  code: string
+  inviterId: string
+  inviteeId?: string
+  createdAt: string
+  claimedAt?: string
 }
 
 export const dbClient = {
@@ -621,6 +658,115 @@ export const dbClient = {
     },
   },
 
+  consultations: {
+    create: (data: {
+      userId: string
+      question: string
+      answer?: string
+      level: 'L1' | 'L2' | 'L3'
+      leadScore?: number
+      status?: 'open' | 'closed'
+      followUpAt?: string
+    }) => {
+      const id = 'WGQ-' + Date.now().toString(36).toUpperCase()
+      const now = new Date().toISOString()
+      const stmt = db.prepare(`
+        INSERT INTO consultations (id, user_id, question, answer, level, lead_score, status, created_at, follow_up_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `)
+      stmt.run(
+        id,
+        data.userId,
+        data.question,
+        data.answer || null,
+        data.level,
+        data.leadScore || 1,
+        data.status || 'open',
+        now,
+        data.followUpAt || null
+      )
+      return {
+        id,
+        userId: data.userId,
+        question: data.question,
+        answer: data.answer,
+        level: data.level,
+        leadScore: data.leadScore || 1,
+        status: data.status || 'open',
+        createdAt: now,
+        followUpAt: data.followUpAt,
+      }
+    },
+    findByUserId: (userId: string, limit: number = 50) => {
+      const stmt = db.prepare(`
+        SELECT id, user_id as userId, question, answer, level, lead_score as leadScore, status, created_at as createdAt, follow_up_at as followUpAt
+        FROM consultations WHERE user_id = ? ORDER BY created_at DESC LIMIT ?
+      `)
+      return stmt.all(userId, limit) as Array<{
+        id: string
+        userId: string
+        question: string
+        answer?: string
+        level: string
+        leadScore: number
+        status: string
+        createdAt: string
+        followUpAt?: string
+      }>
+    },
+    findById: (id: string) => {
+      const stmt = db.prepare(`
+        SELECT id, user_id as userId, question, answer, level, lead_score as leadScore, status, created_at as createdAt, follow_up_at as followUpAt
+        FROM consultations WHERE id = ?
+      `)
+      return (stmt.get(id) as any) || null
+    },
+    updateStatus: (id: string, status: 'open' | 'closed') => {
+      const stmt = db.prepare(`UPDATE consultations SET status = ? WHERE id = ?`)
+      return stmt.run(status, id).changes > 0
+    },
+  },
+
+  referrals: {
+    create: (inviterId: string) => {
+      const id = 'WGR-' + Date.now().toString(36).toUpperCase()
+      const code = Math.random().toString(36).substring(2, 8).toUpperCase()
+      const now = new Date().toISOString()
+      const stmt = db.prepare('INSERT INTO referrals (id, code, inviter_id, created_at) VALUES (?, ?, ?, ?)')
+      stmt.run(id, code, inviterId, now)
+      return { id, code, inviterId, createdAt: now } as ReferralRecord
+    },
+    findByCode: (code: string) => {
+      const stmt = db.prepare(`
+        SELECT id, code, inviter_id as inviterId, invitee_id as inviteeId, created_at as createdAt, claimed_at as claimedAt
+        FROM referrals WHERE code = ?
+      `)
+      return (stmt.get(code) as ReferralRecord) || null
+    },
+    findByInviter: (inviterId: string) => {
+      const stmt = db.prepare(`
+        SELECT id, code, inviter_id as inviterId, invitee_id as inviteeId, created_at as createdAt, claimed_at as claimedAt
+        FROM referrals WHERE inviter_id = ? ORDER BY created_at DESC
+      `)
+      return stmt.all(inviterId) as ReferralRecord[]
+    },
+    findByInvitee: (inviteeId: string) => {
+      const stmt = db.prepare(`
+        SELECT id, code, inviter_id as inviterId, invitee_id as inviteeId, created_at as createdAt, claimed_at as claimedAt
+        FROM referrals WHERE invitee_id = ? ORDER BY created_at DESC LIMIT 1
+      `)
+      return (stmt.get(inviteeId) as ReferralRecord) || null
+    },
+    claim: (code: string, inviteeId: string) => {
+      const now = new Date().toISOString()
+      const stmt = db.prepare(`
+        UPDATE referrals SET invitee_id = ?, claimed_at = ? WHERE code = ? AND invitee_id IS NULL
+      `)
+      const result = stmt.run(inviteeId, now, code)
+      return result.changes > 0
+    },
+  },
+
   // ====== 试用申请表 ======
   applications: {
     create: async (data: {
@@ -669,6 +815,99 @@ export const dbClient = {
       `)
       const result = stmt.run(status, new Date().toISOString(), id)
       return result.changes > 0
+    },
+  },
+
+  // ====== 运营仪表盘统计 ======
+  stats: {
+    /** 获取今日/昨日核心指标 */
+    getRealtime: () => {
+      const now = new Date()
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
+      const yesterdayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).toISOString()
+      const yesterdayEnd = todayStart
+
+      const todayUploads = db.prepare("SELECT COUNT(*) as c FROM reports WHERE created_at >= ?").get(todayStart) as { c: number }
+      const yesterdayUploads = db.prepare("SELECT COUNT(*) as c FROM reports WHERE created_at >= ? AND created_at < ?").get(yesterdayStart, yesterdayEnd) as { c: number }
+
+      const todayPayments = db.prepare("SELECT COUNT(*) as c FROM orders WHERE status = 'paid' AND paid_at >= ?").get(todayStart) as { c: number }
+      const yesterdayPayments = db.prepare("SELECT COUNT(*) as c FROM orders WHERE status = 'paid' AND paid_at >= ? AND paid_at < ?").get(yesterdayStart, yesterdayEnd) as { c: number }
+
+      const todayNewUsers = db.prepare("SELECT COUNT(*) as c FROM users WHERE created_at >= ?").get(todayStart) as { c: number }
+      const yesterdayNewUsers = db.prepare("SELECT COUNT(*) as c FROM users WHERE created_at >= ? AND created_at < ?").get(yesterdayStart, yesterdayEnd) as { c: number }
+
+      const bLeads = db.prepare("SELECT COUNT(*) as c FROM applications WHERE status = 'pending'").get() as { c: number }
+
+      const totalUsers = db.prepare("SELECT COUNT(*) as c FROM users").get() as { c: number }
+      const totalPaidToday = todayPayments.c
+      const conversionRate = totalUsers.c > 0 ? Math.round((totalPaidToday / totalUsers.c) * 1000) / 10 : 0
+
+      return {
+        todayUploads: todayUploads.c,
+        yesterdayUploads: yesterdayUploads.c,
+        todayPayments: todayPayments.c,
+        yesterdayPayments: yesterdayPayments.c,
+        todayNewUsers: todayNewUsers.c,
+        yesterdayNewUsers: yesterdayNewUsers.c,
+        bLeads: bLeads.c,
+        conversionRate,
+      }
+    },
+
+    /** 获取近 N 天趋势 */
+    getTrends: (days: number = 7) => {
+      const result: { date: string; uploads: number; newUsers: number; payments: number }[] = []
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date()
+        d.setDate(d.getDate() - i)
+        const start = new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString()
+        const end = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).toISOString()
+        const dateLabel = `${d.getMonth() + 1}/${d.getDate()}`
+
+        const uploads = db.prepare("SELECT COUNT(*) as c FROM reports WHERE created_at >= ? AND created_at < ?").get(start, end) as { c: number }
+        const newUsers = db.prepare("SELECT COUNT(*) as c FROM users WHERE created_at >= ? AND created_at < ?").get(start, end) as { c: number }
+        const payments = db.prepare("SELECT COUNT(*) as c FROM orders WHERE status = 'paid' AND paid_at >= ? AND paid_at < ?").get(start, end) as { c: number }
+
+        result.push({ date: dateLabel, uploads: uploads.c, newUsers: newUsers.c, payments: payments.c })
+      }
+      return result
+    },
+
+    /** 获取业务总览 */
+    getOverview: () => {
+      const totalUsers = db.prepare("SELECT COUNT(*) as c FROM users").get() as { c: number }
+      const totalReports = db.prepare("SELECT COUNT(*) as c FROM reports").get() as { c: number }
+      const totalOrders = db.prepare("SELECT COUNT(*) as c FROM orders WHERE status = 'paid'").get() as { c: number }
+      const totalRevenue = db.prepare("SELECT COALESCE(SUM(amount), 0) as s FROM orders WHERE status = 'paid'").get() as { s: number }
+      const institutionCount = db.prepare("SELECT COUNT(*) as c FROM institutions").get() as { c: number }
+
+      const memberDist = db.prepare(`
+        SELECT member_type as type, COUNT(*) as count FROM user_limits GROUP BY member_type
+      `).all() as { type: string; count: number }[]
+
+      return {
+        totalUsers: totalUsers.c,
+        totalReports: totalReports.c,
+        totalOrders: totalOrders.c,
+        totalRevenue: totalRevenue.s,
+        institutionCount: institutionCount.c,
+        memberDistribution: memberDist,
+      }
+    },
+
+    /** 获取待处理事项 */
+    getTodos: () => {
+      const pendingApplications = db.prepare(`
+        SELECT id, company, contact_name as contactName, phone, email, problem, status, created_at as createdAt
+        FROM applications WHERE status = 'pending' ORDER BY created_at DESC LIMIT 10
+      `).all() as any[]
+
+      const exhaustedUsers = db.prepare(`
+        SELECT COUNT(*) as c FROM user_limits
+        WHERE free_count = 0 AND (member_type = 'none' OR member_expire < ?)
+      `).get(new Date().toISOString()) as { c: number }
+
+      return { pendingApplications, exhaustedUsers: exhaustedUsers.c }
     },
   },
 }
