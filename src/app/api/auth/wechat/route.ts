@@ -117,7 +117,7 @@ async function handleMockLogin() {
   }
 
   const token = await createToken({ userId: user.id, openid: user.openid })
-  const response = NextResponse.redirect(`${BASE_URL}/analyze`)
+  const response = NextResponse.redirect(`${BASE_URL}/analyze?token=${token}`)
   response.cookies.set('auth-token', token, {
     httpOnly: true,
     secure: false,

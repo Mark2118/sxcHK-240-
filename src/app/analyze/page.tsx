@@ -96,6 +96,18 @@ export default function AnalyzePage() {
   const [ocrResult, setOcrResult] = useState(false)
   const [ocrText, setOcrText] = useState('')
   // 密码验证已移除 — 正式环境直接开放
+
+  // 处理 mock 登录后的 token 回调（URL ?token=xxx）
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const urlToken = urlParams.get('token')
+    if (urlToken) {
+      localStorage.setItem('xsc_token', urlToken)
+      window.history.replaceState({}, '', window.location.pathname)
+      window.location.reload()
+    }
+  }, [])
+
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
