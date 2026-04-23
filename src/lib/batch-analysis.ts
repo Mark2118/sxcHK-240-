@@ -90,7 +90,8 @@ export async function analyzeSingleImage(
       rawText: analysisText,
     }
   } catch (e: any) {
-    return null
+    console.error('单张分析失败:', e.message)
+    throw new Error(`分析失败: ${e.message}`)
   }
 }
 
@@ -106,11 +107,16 @@ export async function processBatch(
   const results: StudentAnalysis[] = []
 
   for (let i = 0; i < limit; i++) {
-    const result = await analyzeSingleImage(images[i], subject)
-    if (result) {
-      result.studentName = `学生${i + 1}`
-      result.imageIndex = i
-      results.push(result)
+    try {
+      const result = await analyzeSingleImage(images[i], subject)
+      if (result) {
+        result.studentName = `学生${i + 1}`
+        result.imageIndex = i
+        results.push(result)
+      }
+    } catch (e: any) {
+      console.error(`第${i + 1}张作业分析失败:`, e.message)
+      // 继续处理下一张
     }
   }
 

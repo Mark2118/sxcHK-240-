@@ -50,6 +50,11 @@ export async function POST(req: NextRequest) {
     // 执行批量分析
     const { students, summary } = await processBatch(images, subject)
 
+    if (students.length === 0) {
+      dbClient.batchAnalyses.updateStatus(batch.id, 'failed')
+      return NextResponse.json({ success: false, error: 'ANALYSIS_FAILED', message: '所有作业分析失败，请检查图片质量或网络连接' }, { status: 500 })
+    }
+
     // 更新记录
     const results = JSON.stringify({ students, summary })
     dbClient.batchAnalyses.updateProgress(batch.id, students.length, results)
