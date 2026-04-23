@@ -74,7 +74,7 @@ export default function BAdminPage() {
 
   const fetchMe = async (key: string, secret: string) => {
     try {
-      const res = await fetch('/xsc/api/b/institution/me', {
+      const res = await fetch('/api/b/institution/me', {
         headers: { 'x-api-key': key, 'x-api-secret': secret },
       })
       const data = await res.json()
@@ -107,7 +107,7 @@ export default function BAdminPage() {
   const handleLogin = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/xsc/api/b/institution/login', {
+      const res = await fetch('/api/b/institution/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ apiKey, apiSecret }),
@@ -131,7 +131,7 @@ export default function BAdminPage() {
   const handleRegister = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/xsc/api/b/institution', {
+      const res = await fetch('/api/b/institution', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(regForm),
@@ -157,25 +157,25 @@ export default function BAdminPage() {
   const authHeaders = () => ({ 'x-api-key': apiKey, 'x-api-secret': apiSecret })
 
   const loadDashboard = useCallback(async () => {
-    const res = await fetch('/xsc/api/b/dashboard', { headers: authHeaders() })
+    const res = await fetch('/api/b/dashboard', { headers: authHeaders() })
     const data = await res.json()
     if (data.success) setDashboard(data.data)
   }, [apiKey, apiSecret])
 
   const loadClasses = useCallback(async () => {
-    const res = await fetch('/xsc/api/b/class', { headers: authHeaders() })
+    const res = await fetch('/api/b/class', { headers: authHeaders() })
     const data = await res.json()
     if (data.success) setClasses(data.data)
   }, [apiKey, apiSecret])
 
   const loadStudents = useCallback(async () => {
-    const res = await fetch('/xsc/api/b/student', { headers: authHeaders() })
+    const res = await fetch('/api/b/student', { headers: authHeaders() })
     const data = await res.json()
     if (data.success) setStudents(data.data)
   }, [apiKey, apiSecret])
 
   const loadBatchHistory = useCallback(async () => {
-    const res = await fetch('/xsc/api/b/batch', { headers: authHeaders() })
+    const res = await fetch('/api/b/batch', { headers: authHeaders() })
     const data = await res.json()
     if (data.success) setBatchHistory(data.data)
   }, [apiKey, apiSecret])
@@ -192,7 +192,7 @@ export default function BAdminPage() {
   const [clsForm, setClsForm] = useState({ name: '', grade: 1, subject: 'math' })
   const addClass = async () => {
     if (!clsForm.name) return showToast('请输入班级名称')
-    const res = await fetch('/xsc/api/b/class', {
+    const res = await fetch('/api/b/class', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(clsForm),
@@ -203,7 +203,7 @@ export default function BAdminPage() {
   }
   const delClass = async (id: string) => {
     if (!confirm('确定删除该班级？')) return
-    const res = await fetch(`/xsc/api/b/class?id=${id}`, { method: 'DELETE', headers: authHeaders() })
+    const res = await fetch(`/api/b/class?id=${id}`, { method: 'DELETE', headers: authHeaders() })
     const data = await res.json()
     if (data.success) { showToast('班级已删除'); loadClasses() }
   }
@@ -212,7 +212,7 @@ export default function BAdminPage() {
   const [stuForm, setStuForm] = useState({ name: '', classId: '' })
   const addStudent = async () => {
     if (!stuForm.name || !stuForm.classId) return showToast('请填写姓名和选择班级')
-    const res = await fetch('/xsc/api/b/student', {
+    const res = await fetch('/api/b/student', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(stuForm),
@@ -223,7 +223,7 @@ export default function BAdminPage() {
   }
   const delStudent = async (id: string) => {
     if (!confirm('确定删除该学员？')) return
-    const res = await fetch(`/xsc/api/b/student?id=${id}`, { method: 'DELETE', headers: authHeaders() })
+    const res = await fetch(`/api/b/student?id=${id}`, { method: 'DELETE', headers: authHeaders() })
     const data = await res.json()
     if (data.success) { showToast('学员已删除'); loadStudents() }
   }
@@ -242,7 +242,7 @@ export default function BAdminPage() {
     }
   }, [institution])
   const saveBrand = async () => {
-    const res = await fetch('/xsc/api/b/institution/me', {
+    const res = await fetch('/api/b/institution/me', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(brandForm),
@@ -284,7 +284,7 @@ export default function BAdminPage() {
     setBatchLoading(true)
     setBatchResult(null)
     try {
-      const res = await fetch('/xsc/api/b/batch', {
+      const res = await fetch('/api/b/batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ classId: batchClassId, images: batchImages, subject: batchSubject }),

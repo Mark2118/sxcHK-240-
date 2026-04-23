@@ -14,7 +14,7 @@ export default function WechatTestPage() {
 
     try {
       setStatus('发送中...')
-      const res = await fetch('/xsc/api/wechat/notify', {
+      const res = await fetch('/api/wechat/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

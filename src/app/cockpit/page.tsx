@@ -98,7 +98,7 @@ export default function CockpitPage() {
       }
 
       // 健康检查
-      const healthRes = await fetch('/xsc/api/health')
+      const healthRes = await fetch('/api/health')
       if (healthRes.ok) {
         setHealth({ status: 'healthy' })
       } else {

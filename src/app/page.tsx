@@ -46,7 +46,7 @@ export default function LandingPage() {
       // 开发环境：模拟微信登录
       try {
         const mockCode = 'mock_wx_code_' + Date.now()
-        const res = await fetch('/xsc/api/auth/wechat', {
+        const res = await fetch('/api/auth/wechat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code: mockCode }),
@@ -68,7 +68,7 @@ export default function LandingPage() {
 
     // 生产环境：跳转微信 OAuth 授权
     const redirectUri = encodeURIComponent(`/xsc/analyze?grade=${selectedGrade}`)
-    window.location.href = `/xsc/api/auth/wechat?redirect=${redirectUri}`
+    window.location.href = `/api/auth/wechat?redirect=${redirectUri}`
   }
 
   return (
