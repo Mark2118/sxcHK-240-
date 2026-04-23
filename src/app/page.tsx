@@ -54,7 +54,7 @@ export default function LandingPage() {
         const data = await res.json()
         if (data.success && data.token) {
           localStorage.setItem('xsc_token', data.token)
-          window.location.href = `/analyze?grade=${selectedGrade}`
+          router.push(`/analyze?grade=${selectedGrade}`)
         } else {
           setError('登录失败: ' + (data.error || '请稍后重试'))
           setIsNavigating(false)
