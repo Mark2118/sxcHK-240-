@@ -103,8 +103,9 @@ export default function AnalyzePage() {
     const urlToken = urlParams.get('token')
     if (urlToken) {
       localStorage.setItem('xsc_token', urlToken)
-      window.history.replaceState({}, '', window.location.pathname)
-      window.location.reload()
+      const url = new URL(window.location.href)
+      url.searchParams.delete('token')
+      window.location.replace(url.toString())
     }
   }, [])
 
