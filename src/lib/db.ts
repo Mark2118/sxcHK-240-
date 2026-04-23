@@ -424,6 +424,10 @@ export const dbClient = {
       const stmt = db.prepare('UPDATE orders SET status = ?, wx_order_id = ?, paid_at = ? WHERE id = ?')
       return stmt.run('paid', wxOrderId, now, id).changes > 0
     },
+    updateStatus: (id: string, status: string) => {
+      const stmt = db.prepare('UPDATE orders SET status = ? WHERE id = ?')
+      return stmt.run(status, id).changes > 0
+    },
     findById: (id: string) => {
       const stmt = db.prepare('SELECT id, user_id as userId, type, amount, status, wx_order_id as wxOrderId, created_at as createdAt, paid_at as paidAt FROM orders WHERE id = ?')
       return (stmt.get(id) as OrderRecord) || null

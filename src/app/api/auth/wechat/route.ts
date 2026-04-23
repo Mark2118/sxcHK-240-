@@ -3,84 +3,35 @@ import { dbClient } from '@/lib/db'
 import { createToken } from '@/lib/auth'
 import { emitUserRegistered } from '@/lib/marketing'
 
-const APP_ID = process.env.WECHAT_APP_ID
-const APP_SECRET = process.env.WECHAT_APP_SECRET
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://100.106.90.55:3002'
-
-// 开发模式：无微信配置时启用 mock 登录
-const isMock = !APP_ID || !APP_SECRET
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
 /**
  * GET /api/auth/wechat
- * 处理微信授权回调（带 code 参数）
- * 或跳转到微信授权（无 code 参数）
+ * 香港版：匿名自动登录（无需微信授权）
  */
 export async function GET(req: NextRequest) {
-  const searchParams = req.nextUrl.searchParams
-  const code = searchParams.get('code')
-
-  // 无 code：直接跳转到微信授权页面
-  if (!code) {
-    if (isMock) {
-      return handleMockLogin()
-    }
-    const redirectUri = encodeURIComponent(`${BASE_URL}/api/auth/wechat`)
-    const scope = 'snsapi_userinfo'
-    const authUrl = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${APP_ID}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=winGo#wechat_redirect`
-    return NextResponse.redirect(authUrl)
-  }
-
-  // 有 code：处理微信回调
-  if (isMock) {
-    return handleMockLogin()
-  }
-
   try {
-    // 1. 用 code 换 access_token + openid
-    const tokenRes = await fetch(
-      `https://api.weixin.qq.com/sns/oauth2/access_token?appid=${APP_ID}&secret=${APP_SECRET}&code=${code}&grant_type=authorization_code`
-    )
-    const tokenData = await tokenRes.json()
-
-    if (tokenData.errcode) {
-      return NextResponse.json({ error: '微信授权失败', detail: tokenData.errmsg }, { status: 400 })
-    }
-
-    const { openid, access_token } = tokenData
-
-    // 2. 获取用户信息
-    const userInfoRes = await fetch(
-      `https://api.weixin.qq.com/sns/userinfo?access_token=${access_token}&openid=${openid}&lang=zh_CN`
-    )
-    const userInfo = await userInfoRes.json()
-
-    if (userInfo.errcode) {
-      return NextResponse.json({ error: '获取用户信息失败', detail: userInfo.errmsg }, { status: 400 })
-    }
-
-    // 3. 查找或创建用户
-    let user = dbClient.users.findByOpenid(openid)
+    // 生成匿名用户标识
+    const anonymousId = 'anon_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)
+    let user = dbClient.users.findByOpenid(anonymousId)
     let isNewUser = false
+
     if (!user) {
-      user = dbClient.users.create(openid, userInfo.unionid, userInfo.nickname, userInfo.headimgurl)
+      user = dbClient.users.create(anonymousId, undefined, '用户' + Math.floor(Math.random() * 10000), undefined)
       isNewUser = true
-    } else {
-      dbClient.users.update(user.id, {
-        nickname: userInfo.nickname,
-        avatar: userInfo.headimgurl,
-      })
     }
 
     // 触发新用户注册事件
     if (isNewUser) {
-      emitUserRegistered(user.id, user.openid, userInfo.nickname)
+      emitUserRegistered(user.id, user.openid || anonymousId, user.nickname)
     }
 
-    // 4. 生成 JWT
-    const token = await createToken({ userId: user.id, openid: user.openid })
+    // 生成 JWT
+    const token = await createToken({ userId: user.id, openid: user.openid || anonymousId })
 
-    // 5. 写入 cookie 并重定向到 analyze 页面
-    const response = NextResponse.redirect(`${BASE_URL}/analyze`)
+    // 重定向到 analyze 页面并带上 token
+    const redirectUrl = req.nextUrl.searchParams.get('redirect') || '/analyze'
+    const response = NextResponse.redirect(`${BASE_URL}${redirectUrl}?token=${token}`)
     response.cookies.set('auth-token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -96,41 +47,35 @@ export async function GET(req: NextRequest) {
 
 /**
  * POST /api/auth/wechat
- * Mock 登录（开发测试用，保留兼容）
+ * 香港版：匿名登录（保留兼容，前端直接调用）
  */
 export async function POST(req: NextRequest) {
   try {
-    const mockOpenid = 'mock_' + Date.now()
-    let user = dbClient.users.findByOpenid(mockOpenid)
+    const anonymousId = 'anon_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)
+    let user = dbClient.users.findByOpenid(anonymousId)
+    let isNewUser = false
+
     if (!user) {
-      user = dbClient.users.create(mockOpenid, undefined, '测试用户', 'https://via.placeholder.com/100')
+      user = dbClient.users.create(anonymousId, undefined, '用户' + Math.floor(Math.random() * 10000), undefined)
+      isNewUser = true
     }
 
-    const token = await createToken({ userId: user.id, openid: user.openid })
+    if (isNewUser) {
+      emitUserRegistered(user.id, user.openid || anonymousId, user.nickname)
+    }
+
+    const token = await createToken({ userId: user.id, openid: user.openid || anonymousId })
     return NextResponse.json({
       success: true,
       token,
-      user: { id: user.id, openid: user.openid, nickname: '测试用户', avatar: 'https://via.placeholder.com/100' }
+      user: {
+        id: user.id,
+        openid: user.openid || anonymousId,
+        nickname: user.nickname || '用户',
+        avatar: user.avatar,
+      }
     })
   } catch (error: any) {
     return NextResponse.json({ error: '登录处理失败' }, { status: 500 })
   }
-}
-
-async function handleMockLogin() {
-  const mockOpenid = 'mock_' + Date.now()
-  let user = dbClient.users.findByOpenid(mockOpenid)
-  if (!user) {
-    user = dbClient.users.create(mockOpenid, undefined, '测试用户', 'https://via.placeholder.com/100')
-  }
-
-  const token = await createToken({ userId: user.id, openid: user.openid })
-  const response = NextResponse.redirect(`${BASE_URL}/analyze?token=${token}`)
-  response.cookies.set('auth-token', token, {
-    httpOnly: true,
-    secure: false,
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7,
-  })
-  return response
 }

@@ -297,7 +297,6 @@ export default function CockpitPage() {
     } finally {
       setLoading(false)
     }
-    }
   }, [])
 
   useEffect(() => {

@@ -4,7 +4,9 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode 
 
 export interface UserInfo {
   id: string
-  openid: string
+  openid?: string
+  email?: string
+  phone?: string
   nickname?: string
   avatar?: string
   freeUsesLeft?: number
