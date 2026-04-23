@@ -105,12 +105,7 @@ export async function POST(req: NextRequest) {
     let exercises = null
     if (generateExerciseSet || report.wrong > 0) {
       try {
-        exercises = await generateExercises(
-          report.weakPoints,
-          report.moduleScores,
-          subject,
-          analysisText // Phase 2.1: 原始文本用于题型锚定
-        )
+        exercises = await generateExercises(report.weakPoints, report.moduleScores, subject)
       } catch (e) {
       }
     }

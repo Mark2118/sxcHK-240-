@@ -61,14 +61,7 @@ export async function POST(req: NextRequest) {
     if (generateExerciseSet || report.wrong > 0) {
       try {
         const sourceDifficulty = report.questions[0]?.difficulty || '基础'
-        exercises = await generateExercises(
-          report.weakPoints,
-          report.moduleScores,
-          subject,
-          text, // Phase 2.1: 原始文本用于题型锚定
-          '小升初',
-          sourceDifficulty // 任务2: 原始试卷难度锚定
-        )
+        exercises = await generateExercises(report.weakPoints, report.moduleScores, subject)
       } catch (e) {
       }
     }
