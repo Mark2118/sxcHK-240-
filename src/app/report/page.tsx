@@ -143,7 +143,7 @@ function ReportContent() {
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-lg font-semibold text-gray-900 mb-2">报告加载失败</h2>
           <p className="text-gray-500 mb-6">{data?.error || '报告不存在或已过期'}</p>
-          <a href="/xsc/analyze" className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-900 text-white rounded-xl text-sm font-medium">
+          <a href="/analyze" className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-900 text-white rounded-xl text-sm font-medium">
             <ArrowLeft size={16} />
             返回分析
           </a>
@@ -482,14 +482,14 @@ function ReportContent() {
         {/* 底部 CTA */}
         <div className="mt-8 flex flex-col sm:flex-row gap-3">
           <a
-            href="/xsc/analyze"
+            href="/analyze"
             className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-blue-900 text-white rounded-xl font-medium hover:bg-blue-800 transition-colors"
           >
             <BarChart3 size={18} />
             再次分析
           </a>
           <a
-            href="/xsc/trends"
+            href="/trends"
             className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-white border border-gray-200 text-gray-800 rounded-xl font-medium hover:bg-gray-50 transition-colors"
           >
             <Target size={18} />
