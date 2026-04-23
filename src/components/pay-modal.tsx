@@ -60,7 +60,7 @@ export default function PayModal({ open, onClose, onSuccess }: PayModalProps) {
     setError('')
 
     try {
-      const res = await fetch('/xsc/api/orders', {
+      const res = await fetch('/api/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ export default function PayModal({ open, onClose, onSuccess }: PayModalProps) {
       // Mock 模式下直接模拟支付成功
       if (data.mock) {
         // 模拟回调
-        await fetch('/xsc/api/orders/callback', {
+        await fetch('/api/orders/callback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ orderId: data.orderId }),

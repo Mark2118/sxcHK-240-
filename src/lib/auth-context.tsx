@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUser = async (authToken: string) => {
     try {
-      const res = await fetch('/xsc/api/auth/me', {
+      const res = await fetch('/api/auth/me', {
         headers: { Authorization: `Bearer ${authToken}` },
       })
       const data = await res.json()
@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null)
     setUser(null)
     // 可选：调用后端登出接口
-    fetch('/xsc/api/auth/logout', { method: 'POST' }).catch(() => {})
+    fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
   }, [])
 
   const refreshUser = useCallback(async () => {

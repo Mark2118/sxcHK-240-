@@ -96,6 +96,19 @@ export default function AnalyzePage() {
   const [ocrResult, setOcrResult] = useState(false)
   const [ocrText, setOcrText] = useState('')
   // 密码验证已移除 — 正式环境直接开放
+
+  // 处理 mock 登录后的 token 回调（URL ?token=xxx）
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const urlToken = urlParams.get('token')
+    if (urlToken) {
+      localStorage.setItem('xsc_token', urlToken)
+      const url = new URL(window.location.href)
+      url.searchParams.delete('token')
+      window.location.replace(url.toString())
+    }
+  }, [])
+
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -109,7 +122,7 @@ export default function AnalyzePage() {
         const base64 = (reader.result as string)
         const base64Data = base64.split(',')[1]
         setUploadedImage(base64Data)
-        const res = await fetch('/xsc/api/ocr', {
+        const res = await fetch('/api/ocr', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ imageBase64: base64Data }),
@@ -143,7 +156,7 @@ export default function AnalyzePage() {
     try {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' }
       if (token) headers['Authorization'] = `Bearer ${token}`
-      const res = await fetch('/xsc/api/correct', {
+      const res = await fetch('/api/correct', {
         method: 'POST',
         headers,
         body: JSON.stringify({ imageBase64: uploadedImage, subject, generateExerciseSet: true }),
@@ -165,7 +178,7 @@ export default function AnalyzePage() {
     try {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' }
       if (token) headers['Authorization'] = `Bearer ${token}`
-      const res = await fetch('/xsc/api/check', {
+      const res = await fetch('/api/check', {
         method: 'POST',
         headers,
         body: JSON.stringify({ text, subject, generateExerciseSet: true, ocrText }),
@@ -176,7 +189,7 @@ export default function AnalyzePage() {
         if (process.env.NODE_ENV === 'development') {
           // 开发环境：模拟微信登录
           const mockCode = 'mock_wx_code_' + Date.now()
-          const loginRes = await fetch('/xsc/api/auth/wechat', {
+          const loginRes = await fetch('/api/auth/wechat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code: mockCode }),
@@ -188,7 +201,7 @@ export default function AnalyzePage() {
           }
         } else {
           // 生产环境：跳转微信 OAuth
-          window.location.href = '/xsc/api/auth/wechat?redirect=' + encodeURIComponent(window.location.pathname + window.location.search)
+          window.location.href = '/api/auth/wechat?redirect=' + encodeURIComponent(window.location.pathname + window.location.search)
         }
       } else if (data.code === 'NO_QUOTA') {
         setPayModalOpen(true)
@@ -211,7 +224,7 @@ export default function AnalyzePage() {
     if (result?.isPreview && result?.id) {
       const headers: Record<string, string> = {}
       if (token) headers['Authorization'] = `Bearer ${token}`
-      const res = await fetch(`/xsc/api/report?id=${result.id}`, { headers })
+      const res = await fetch(`/api/report?id=${result.id}`, { headers })
       const data = await res.json()
       if (data.success) {
         setResult({
@@ -291,7 +304,7 @@ export default function AnalyzePage() {
                     if (process.env.NODE_ENV === 'development') {
                       // 开发环境：模拟微信登录
                       const mockCode = 'mock_wx_code_' + Date.now()
-                      const res = await fetch('/xsc/api/auth/wechat', {
+                      const res = await fetch('/api/auth/wechat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ code: mockCode }),
@@ -306,7 +319,7 @@ export default function AnalyzePage() {
                       return
                     }
                     // 生产环境：跳转微信 OAuth
-                    window.location.href = '/xsc/api/auth/wechat?redirect=' + encodeURIComponent(window.location.pathname + window.location.search)
+                    window.location.href = '/api/auth/wechat?redirect=' + encodeURIComponent(window.location.pathname + window.location.search)
                   }
                   doLogin()
                 }}
@@ -584,7 +597,7 @@ export default function AnalyzePage() {
                               const doLogin = async () => {
                                 if (process.env.NODE_ENV === 'development') {
                                   const mockCode = 'mock_wx_code_' + Date.now()
-                                  const res = await fetch('/xsc/api/auth/wechat', {
+                                  const res = await fetch('/api/auth/wechat', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ code: mockCode }),
@@ -598,7 +611,7 @@ export default function AnalyzePage() {
                                   }
                                   return
                                 }
-                                window.location.href = '/xsc/api/auth/wechat?redirect=' + encodeURIComponent(window.location.pathname + window.location.search)
+                                window.location.href = '/api/auth/wechat?redirect=' + encodeURIComponent(window.location.pathname + window.location.search)
                               }
                               doLogin()
                             }}
@@ -975,7 +988,7 @@ export default function AnalyzePage() {
           try {
             const headers: Record<string, string> = {}
             if (token) headers['Authorization'] = `Bearer ${token}`
-            const res = await fetch(`/xsc/api/report?id=${reportId}`, { headers })
+            const res = await fetch(`/api/report?id=${reportId}`, { headers })
             const data = await res.json()
             if (data.success) {
               setResult({

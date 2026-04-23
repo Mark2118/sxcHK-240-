@@ -46,6 +46,18 @@ interface DashboardData {
   updatedAt: string
 }
 
+interface Commit {
+  sha: string
+  message: string
+  author: string
+  date: string
+}
+
+interface HealthStatus {
+  status: 'healthy' | 'degraded' | 'down'
+  responseTime?: number
+}
+
 const MASTER_KEY = 'xsc-admin-2026'
 
 /** PRD-v6 项目里程碑 */
@@ -242,6 +254,8 @@ export default function CockpitPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [commits, setCommits] = useState<Commit[]>([])
+  const [health, setHealth] = useState<HealthStatus>({ status: 'healthy' })
   const [lastUpdate, setLastUpdate] = useState(new Date())
   const [activeTab, setActiveTab] = useState<'ops' | 'milestones'>('ops')
 
@@ -249,15 +263,40 @@ export default function CockpitPage() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(`/xsc/api/ops/dashboard?key=${MASTER_KEY}`, { cache: 'no-store' })
+      // ops dashboard
+      const res = await fetch(`/api/ops/dashboard?key=${MASTER_KEY}`, { cache: 'no-store' })
       const json = await res.json()
       if (!json.success) throw new Error(json.error || '加载失败')
       setData(json.data)
+
+      // GitHub 提交记录
+      const ghRes = await fetch('https://api.github.com/repos/Mark2118/wingedu/commits?per_page=5', {
+        headers: { Accept: 'application/vnd.github.v3+json' },
+      })
+      if (ghRes.ok) {
+        const ghData = await ghRes.json()
+        setCommits(ghData.map((c: any) => ({
+          sha: c.sha.slice(0, 7),
+          message: c.commit.message.split('\n')[0],
+          author: c.commit.author.name,
+          date: new Date(c.commit.author.date).toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        })))
+      }
+
+      // 健康检查
+      const healthRes = await fetch('/api/health')
+      if (healthRes.ok) {
+        setHealth({ status: 'healthy' })
+      } else {
+        setHealth({ status: 'degraded' })
+      }
       setLastUpdate(new Date())
     } catch (e: any) {
       setError(e.message)
+      setHealth({ status: 'down' })
     } finally {
       setLoading(false)
+    }
     }
   }, [])
 

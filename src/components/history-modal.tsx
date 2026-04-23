@@ -32,7 +32,7 @@ export default function HistoryModal({ open, onClose, onSelectReport }: HistoryM
     setLoading(true)
     setError('')
 
-    fetch('/xsc/api/report?list=1', {
+    fetch('/api/report?list=1', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())

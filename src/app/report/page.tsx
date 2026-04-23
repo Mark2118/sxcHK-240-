@@ -81,7 +81,7 @@ function ReportContent() {
       try {
         const headers: Record<string, string> = {}
         if (token) headers['Authorization'] = `Bearer ${token}`
-        const res = await fetch(`/xsc/api/report?id=${reportId}`, { headers })
+        const res = await fetch(`/api/report?id=${reportId}`, { headers })
         const json = await res.json()
         setData(json)
       } catch (e) {

@@ -47,7 +47,7 @@ export default function TrendsPage() {
     }
     const load = async () => {
       try {
-        const res = await fetch('/xsc/api/trends', {
+        const res = await fetch('/api/trends', {
           headers: { Authorization: `Bearer ${token}` },
         })
         const json = await res.json()
@@ -83,7 +83,7 @@ export default function TrendsPage() {
             onClick={() => {
               if (process.env.NODE_ENV === 'development') {
                 const mockCode = 'mock_wx_code_' + Date.now()
-                fetch('/xsc/api/auth/wechat', {
+                fetch('/api/auth/wechat', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ code: mockCode }),
@@ -96,7 +96,7 @@ export default function TrendsPage() {
                     }
                   })
               } else {
-                window.location.href = '/xsc/api/auth/wechat?redirect=' + encodeURIComponent(window.location.pathname)
+                window.location.href = '/api/auth/wechat?redirect=' + encodeURIComponent(window.location.pathname)
               }
             }}
             className="px-5 py-2.5 bg-blue-900 text-white rounded-xl text-sm font-medium"

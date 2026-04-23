@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  basePath: '/xsc',
   output: 'standalone',
   images: {
     unoptimized: true,
@@ -9,9 +8,8 @@ const nextConfig = {
     return [
       {
         source: '/',
-        destination: '/xsc/',
+        destination: '/analyze',
         permanent: false,
-        basePath: false,
       },
     ]
   },
